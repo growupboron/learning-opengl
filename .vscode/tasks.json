@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Build C++ File",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-g",
+                "--std=c++11",
+                "src/*.cpp",
+                "-o",
+                "build/program.exec",
+                "-lGL",
+                "-lGLU",
+                "-lglfw3",
+                "-lX11",
+                "-lXxf86vm",
+                "-lXrandr",
+                "-lpthread",
+                "-lXi",
+                "-ldl",
+                "-lXinerama",
+                "-lXcursor",
+                "-lGLEW",
+                "-lsoil2",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
