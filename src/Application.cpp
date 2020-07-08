@@ -1,25 +1,58 @@
-#include "libs.h"
+#include "include_libraries.h"
 
 Vertex vertices[] = {
-    // POSITION                         // COLOR                        // Texcoords
-    glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f),
+    // POSITION                  // COLOR                  // Texcoords
+    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f),
     glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f),
-    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f)
-
-};
+    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f),
+    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f)};
 
 unsigned int numberOfVertices = sizeof(vertices) / sizeof(Vertex);
 
 GLuint indeces[] = {
-    0, 1, 2};
+    0, 1, 2, 0, 2, 3};
 
 unsigned int numberOfIndecs = sizeof(indeces) / sizeof(GLuint);
 
-void updateInput(GLFWwindow *window)
+void updateInput(GLFWwindow *window, glm::vec3 &position, glm::vec3 &rotation, glm::vec3 &scale)
 {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        position.y += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        position.y -= 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        position.x -= 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        position.x += 0.01f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+        rotation.y -= 1.f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+        rotation.y += 1.f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    {
+        scale -= 0.05f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+    {
+        scale += 0.05f;
+    }
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        exit(0);
     }
 }
 
@@ -195,7 +228,9 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
 
     // FOR NON RESIZABLE WINDOWS
-    // glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+
+    // enabling this to get initial window size, before we hit the while loop.
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
     // glViewport(0, 0, framebufferWidth, framebufferHeight);
 
     glfwMakeContextCurrent(window); // IMPORTANT FOR GLEW!!
@@ -254,7 +289,146 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indeces), indeces, GL_STATIC_DRAW);
 
+    // ############## INPUT ASSEMBLY ###########################
 
+    // set VertexAttributePointers and enable
+
+    // you can use this instead of zero if the core_program is available. ^^
+    // GLuint attribLocation = glGetAttribLocation(core_program, "vertex_position");
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, position));
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, color));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, texcoord));
+    glEnableVertexAttribArray(2);
+
+    // unbind everything
+
+    glBindVertexArray(0);
+
+    // ################## TEXTURES #############################
+
+    // texture 0 init
+
+    int image_width = 0;
+    int image_height = 0;
+
+    unsigned char *image = SOIL_load_image("images/db_trans.png", &image_width, &image_height, NULL, SOIL_LOAD_RGBA);
+
+    // create and try to find the texture
+    GLuint texture0;
+    glGenTextures(1, &texture0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+
+    // repeat when texture doesn't cover required bounds
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // magnification and minifying image behaviour (type of scaling)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    if (image)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "ERROR:APPLICATION.CPP::FAILED_TO_LOAD_TEXTURE0" << std::endl;
+    }
+
+    // Remove all bound textures
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    SOIL_free_image_data(image);
+
+    // texture 1 init
+
+    int image_width1 = 0;
+    int image_height1 = 0;
+
+    unsigned char *image1 = SOIL_load_image("images/container.jpg", &image_width1, &image_height1, NULL, SOIL_LOAD_RGBA);
+
+    // create and try to find the texture
+    GLuint texture1;
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    // repeat when texture doesn't cover required bounds
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // magnification and minifying image behaviour (type of scaling)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    if (image)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width1, image_height1, 0, GL_RGBA, GL_UNSIGNED_BYTE, image1);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "ERROR:APPLICATION.CPP::FAILED_TO_LOAD_TEXTURE1" << std::endl;
+    }
+
+    // Remove all bound textures
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    SOIL_free_image_data(image1);
+
+    // ############## TRANSFORMATIONS ##########################
+
+    // rotate, scale and translate
+
+    // not initializing as identity will cause a black screen.
+    glm::mat4 ModelMatrix(1.f); // Identitiy Model Matrix
+
+    glm::vec3 position = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 rotation = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
+
+    ModelMatrix = glm::translate(ModelMatrix, glm::vec3(position));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.x), glm::vec3(1.f, 0.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.y), glm::vec3(0.f, 1.f, 0.f));
+    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.z), glm::vec3(0.f, 0.f, 1.f));
+    ModelMatrix = glm::scale(ModelMatrix, scale);
+
+    // camera configration
+
+    glm::vec3 worldUpVector = glm::vec3(0.f, 1.f, 0.f);     // straight up in y axis
+    glm::vec3 camFrontVector = glm::vec3(0.f, 0.f, -1.f);   // straight ahead
+    glm::vec3 camPositionVector = glm::vec3(0.f, 0.f, 1.f); // set to origin as default
+
+    // not initializing as identity will cause a black screen.
+    glm::mat4 ViewMatrix(1.f);
+    ViewMatrix = glm::lookAt(camPositionVector, camPositionVector + camFrontVector, worldUpVector);
+
+    float fov = 90.f;       // field of view (degrees, to be converted later)
+    float nearPlane = 0.1f; // clip stuff slightly behind the camera, so we don't see it disappear
+    float farPlane = 1000.f;
+
+    // not initializing as identity will cause a black screen.
+    glm::mat4 ProjectionMatrix(1.f);
+    ProjectionMatrix = glm::perspective(
+        glm::radians(fov),
+        static_cast<float>(framebufferWidth) / static_cast<float>(framebufferHeight),
+        nearPlane,
+        farPlane);
+
+    glUseProgram(core_program);
+
+    // pass in model matrix to vertex shader
+    glUniformMatrix4fv(glGetUniformLocation(core_program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+
+    glUniformMatrix4fv(glGetUniformLocation(core_program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(core_program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
+
+    glUseProgram(0);
 
     // ################# MAIN LOOP #############################
 
@@ -262,19 +436,73 @@ int main()
     {
 
         // UPDATE
-        updateInput(window);
+        updateInput(window, position, rotation, scale);
         // DRAW CANVAS
 
         // CLEAR
-        glClearColor(1.f, 0.f, 0.f, 1.f);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        // select program
+        glUseProgram(core_program);
+
+        // send uniforms (variables from cpu to gpu)
+        glUniform1i(glGetUniformLocation(core_program, "texture0"), 0);
+        glUniform1i(glGetUniformLocation(core_program, "texture1"), 1);
+
+        // move, rotate and scale
+
+        // rotation.x += 1;
+
+        ModelMatrix = glm::mat4(1.f);
+
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(position));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.x), glm::vec3(1.f, 0.f, 0.f));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.y), glm::vec3(0.f, 1.f, 0.f));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.z), glm::vec3(0.f, 0.f, 1.f));
+        ModelMatrix = glm::scale(ModelMatrix, scale);
+
+        glUniformMatrix4fv(glGetUniformLocation(core_program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+
+        // in case of resize ( to prevent stretching )
+        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+
+        ProjectionMatrix = glm::perspective(
+            glm::radians(fov),
+            static_cast<float>(framebufferWidth) / static_cast<float>(framebufferHeight),
+            nearPlane,
+            farPlane);
+
+        glUniformMatrix4fv(glGetUniformLocation(core_program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(core_program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
+
+        // activate texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+
+        // Bind vertex array object (data for trinangle)
+
+        glBindVertexArray(VAO);
+
         // DRAW
+
+        // glDrawArrays() draw all arrays without index buffer
+        glDrawElements(GL_TRIANGLES, numberOfIndecs, GL_UNSIGNED_INT, 0);
 
         // ENDDRAW
         glfwSwapBuffers(window);
 
         // FORCE EXECUTION OF GL COMMANDS IN FINITE TIME
         glFlush();
+
+        // reset all bindings to free up space
+        glBindVertexArray(0);
+        glUseProgram(0);
+        glActiveTexture(0);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
         glfwPollEvents();
     }
