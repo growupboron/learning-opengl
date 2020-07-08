@@ -1,12 +1,12 @@
 #include "include_libraries.h"
-
+#include "shader.h"
+#include "texture.h"
 Vertex vertices[] = {
     // POSITION                  // COLOR                  // Texcoords
-    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec3(0.f,0.f,-1.f),
-    glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f), glm::vec3(0.f,0.f,-1.f),
-    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f),    glm::vec3(0.f,0.f,-1.f),
-    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f), glm::vec3(0.f,0.f,-1.f)
-    }; 
+    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec3(0.f, 0.f, -1.f),
+    glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f), glm::vec3(0.f, 0.f, -1.f),
+    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f), glm::vec3(0.f, 0.f, -1.f),
+    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f), glm::vec3(0.f, 0.f, -1.f)};
 
 unsigned int numberOfVertices = sizeof(vertices) / sizeof(Vertex);
 
@@ -62,130 +62,6 @@ void framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)
     glViewport(0, 0, fbW, fbH);
 }
 
-// LOADING THE VERTEX AND FRAGMENT SHADERS
-bool loadShaders(GLuint &program)
-{
-    bool loadSuccess = true;
-    //  common error checking variables
-    char infoLog[512];
-    GLint compileResult;
-
-    std::string vertex_filepath = "res/shaders/vertex_core.glsl";
-    std::string fragment_filepath = "res/shaders/fragment_core.glsl";
-
-    std::string currentLine = "";
-    std::string finalsrc = "";
-
-    std::ifstream input_file1;
-
-    // ##### VERTEX SHADER ##########
-
-    // read source
-
-    input_file1.open(vertex_filepath);
-
-    if (input_file1.is_open())
-    {
-        while (std::getline(input_file1, currentLine))
-        {
-            finalsrc += currentLine + "\n";
-        }
-    }
-    else
-    {
-        std::cout << "ERROR:APPLICATION.CPP::COULD_NOT_OPEN_VERTEX_SHADER_FILE" << std::endl;
-        loadSuccess = false;
-    }
-    input_file1.close();
-
-    // create shader
-
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    const GLchar *vertSrc = finalsrc.c_str();
-
-    glShaderSource(vertexShader, 1, &vertSrc, NULL);
-    glCompileShader(vertexShader);
-
-    // error checking
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &compileResult);
-    if (!compileResult)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR:APPLICATION.CPP::VERTEX_SHADER_COMPILE_FAILED" << std::endl;
-        std::cout << infoLog << std::endl;
-        loadSuccess = false;
-    }
-
-    // ########### FRAGMENT SHADER ##########333
-
-    currentLine = "";
-    finalsrc = "";
-
-    // read source
-
-    std::ifstream input_file2;
-    input_file2.open(fragment_filepath);
-
-    if (input_file2.is_open())
-    {
-        while (std::getline(input_file2, currentLine))
-        {
-            finalsrc += currentLine + "\n";
-        }
-    }
-    else
-    {
-        std::cout << "ERROR:APPLICATION.CPP::COULD_NOT_OPEN_FRAGMENT_SHADER_FILE" << std::endl;
-        loadSuccess = false;
-    }
-    input_file2.close();
-
-    // create shader
-
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    const GLchar *fragSrc = finalsrc.c_str();
-
-    glShaderSource(fragmentShader, 1, &fragSrc, NULL);
-    glCompileShader(fragmentShader);
-
-    // error checking
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &compileResult);
-    if (!compileResult)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR:APPLICATION.CPP::FRAGMENT_SHADER_COMPILE_FAILED" << std::endl;
-        std::cout << infoLog << std::endl;
-        loadSuccess = false;
-    }
-
-    // ########### PROGRAM #################
-
-    program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-
-    glLinkProgram(program);
-
-    glGetProgramiv(program, GL_LINK_STATUS, &compileResult);
-
-    if (!compileResult)
-    {
-        glGetProgramInfoLog(program, 512, NULL, infoLog);
-        std::cout << "ERROR:APPLICATION.CPP::COULD_NOT_LINK_PROGRAM" << std::endl;
-        std::cout << infoLog << std::endl;
-        loadSuccess = false;
-    }
-
-    // Free up memory used by indivdual shaders
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return loadSuccess;
-}
-
 int main()
 {
 
@@ -199,8 +75,8 @@ int main()
 
     // CREATE WINDOW
 
-    const int WINDOW_WIDTH = 640;
-    const int WINDOW_HEIGHT = 480;
+    const int WINDOW_WIDTH = 1280;
+    const int WINDOW_HEIGHT = 720;
     int framebufferWidth = 0;
     int framebufferHeight = 0;
 
@@ -267,12 +143,12 @@ int main()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // ################## SHADERS ############################
-
-    GLuint core_program;
-    if (!loadShaders(core_program))
-    {
-        glfwTerminate();
-    }
+    Shader core_program((char *)"res/shaders/vertex_core.glsl", (char *)"res/shaders/fragment_core.glsl");
+    // GLuint core_program;
+    // if (!loadShaders(core_program))
+    // {
+    //     glfwTerminate();
+    // }
 
     // ############## VAO, VBO, EBO ###########################
 
@@ -306,7 +182,6 @@ int main()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, texcoord));
     glEnableVertexAttribArray(2);
 
-
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, normal));
     glEnableVertexAttribArray(3);
 
@@ -316,76 +191,9 @@ int main()
 
     // ################## TEXTURES #############################
 
-    // texture 0 init
-
-    int image_width = 0;
-    int image_height = 0;
-
-    unsigned char *image = SOIL_load_image("images/db_trans.png", &image_width, &image_height, NULL, SOIL_LOAD_RGBA);
-
-    // create and try to find the texture
-    GLuint texture0;
-    glGenTextures(1, &texture0);
-    glBindTexture(GL_TEXTURE_2D, texture0);
-
-    // repeat when texture doesn't cover required bounds
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // magnification and minifying image behaviour (type of scaling)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    if (image)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "ERROR:APPLICATION.CPP::FAILED_TO_LOAD_TEXTURE0" << std::endl;
-    }
-
-    // Remove all bound textures
-    glActiveTexture(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    SOIL_free_image_data(image);
-
-    // texture 1 init
-
-    int image_width1 = 0;
-    int image_height1 = 0;
-
-    unsigned char *image1 = SOIL_load_image("images/container.jpg", &image_width1, &image_height1, NULL, SOIL_LOAD_RGBA);
-
-    // create and try to find the texture
-    GLuint texture1;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    // repeat when texture doesn't cover required bounds
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // magnification and minifying image behaviour (type of scaling)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    if (image)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width1, image_height1, 0, GL_RGBA, GL_UNSIGNED_BYTE, image1);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "ERROR:APPLICATION.CPP::FAILED_TO_LOAD_TEXTURE1" << std::endl;
-    }
-
-    // Remove all bound textures
-    glActiveTexture(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    SOIL_free_image_data(image1);
-
+ 
+    Texture texture_0("images/db_trans.png",GL_TEXTURE_2D,0);
+    Texture texture_1("images/container.jpg", GL_TEXTURE_2D,1);
     // ############## TRANSFORMATIONS ##########################
 
     // rotate, scale and translate
@@ -427,23 +235,17 @@ int main()
 
     // ################### LIGTHING ###################
 
-    glm::vec3 lightPos0(0.f,0.f,1.f);
-    
-
-    glUseProgram(core_program);
-
+    glm::vec3 lightPos0(0.f, 0.f, 1.f);
+    core_program.use();
     // pass in model matrix to vertex shader
-    glUniformMatrix4fv(glGetUniformLocation(core_program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+    core_program.setMat4v(ModelMatrix, "ModelMatrix", GL_FALSE);
+    core_program.setMat4v(ViewMatrix, "ViewMatrix", GL_FALSE);
+    core_program.setMat4v(ProjectionMatrix, "ProjectionMatrix", GL_FALSE);
 
-    glUniformMatrix4fv(glGetUniformLocation(core_program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
-    glUniformMatrix4fv(glGetUniformLocation(core_program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
-
-    // pass in the lighting data
-    glUniform3fv(glGetUniformLocation(core_program,"lightPos0"), 1, glm::value_ptr(lightPos0));
-    glUniform3fv(glGetUniformLocation(core_program,"cameraPos"), 1, glm::value_ptr(camPositionVector));
-
-    glUseProgram(0);
-
+    // // pass in the lighting data
+    core_program.setVec3f(lightPos0, "lightPos0");
+    core_program.setVec3f(camPositionVector, "cameraPos");
+    core_program.unuse();
     // ################# MAIN LOOP #############################
 
     while (!glfwWindowShouldClose(window))
@@ -458,12 +260,10 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // select program
-        glUseProgram(core_program);
-
+        core_program.use();
         // send uniforms (variables from cpu to gpu)
-        glUniform1i(glGetUniformLocation(core_program, "texture0"), 0);
-        glUniform1i(glGetUniformLocation(core_program, "texture1"), 1);
-
+        core_program.set1i(texture_0.getTextureUnit(), "texture0");
+        core_program.set1i(texture_1.getTextureUnit(), "texture1");
         // move, rotate and scale
 
         // rotation.x += 1;
@@ -476,7 +276,7 @@ int main()
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.z), glm::vec3(0.f, 0.f, 1.f));
         ModelMatrix = glm::scale(ModelMatrix, scale);
 
-        glUniformMatrix4fv(glGetUniformLocation(core_program, "ModelMatrix"), 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+        core_program.setMat4v(ModelMatrix, "ModelMatrix");
 
         // in case of resize ( to prevent stretching )
         glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
@@ -487,15 +287,15 @@ int main()
             nearPlane,
             farPlane);
 
-        glUniformMatrix4fv(glGetUniformLocation(core_program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
-        glUniformMatrix4fv(glGetUniformLocation(core_program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
+        core_program.setMat4v(ViewMatrix, "ViewMatrix", GL_FALSE);
+        core_program.setMat4v(ProjectionMatrix, "ProjectionMatrix", GL_FALSE);
 
         // activate texture
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture0);
+        texture_0.bind(); 
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, texture0);
 
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture1);
+        texture_1.bind();
 
         // Bind vertex array object (data for trinangle)
 
@@ -514,9 +314,9 @@ int main()
 
         // reset all bindings to free up space
         glBindVertexArray(0);
-        glUseProgram(0);
-        glActiveTexture(0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        core_program.unuse();
+        texture_1.unbind();
+        texture_0.unbind();
 
         glfwPollEvents();
     }
@@ -524,6 +324,5 @@ int main()
     // END OF PROGRAM
     glfwDestroyWindow(window);
     glfwTerminate();
-    glDeleteProgram(core_program);
     return 0;
 }
