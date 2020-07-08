@@ -2,10 +2,11 @@
 
 Vertex vertices[] = {
     // POSITION                  // COLOR                  // Texcoords
-    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f),
-    glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f),
-    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f),
-    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f)};
+    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec3(0.f,0.f,-1.f),
+    glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f), glm::vec3(0.f,0.f,-1.f),
+    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f),    glm::vec3(0.f,0.f,-1.f),
+    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f), glm::vec3(0.f,0.f,-1.f)
+    }; 
 
 unsigned int numberOfVertices = sizeof(vertices) / sizeof(Vertex);
 
@@ -305,6 +306,10 @@ int main()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, texcoord));
     glEnableVertexAttribArray(2);
 
+
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(3);
+
     // unbind everything
 
     glBindVertexArray(0);
@@ -420,6 +425,11 @@ int main()
         nearPlane,
         farPlane);
 
+    // ################### LIGTHING ###################
+
+    glm::vec3 lightPos0(0.f,0.f,1.f);
+    
+
     glUseProgram(core_program);
 
     // pass in model matrix to vertex shader
@@ -427,6 +437,10 @@ int main()
 
     glUniformMatrix4fv(glGetUniformLocation(core_program, "ViewMatrix"), 1, GL_FALSE, glm::value_ptr(ViewMatrix));
     glUniformMatrix4fv(glGetUniformLocation(core_program, "ProjectionMatrix"), 1, GL_FALSE, glm::value_ptr(ProjectionMatrix));
+
+    // pass in the lighting data
+    glUniform3fv(glGetUniformLocation(core_program,"lightPos0"), 1, glm::value_ptr(lightPos0));
+    glUniform3fv(glGetUniformLocation(core_program,"cameraPos"), 1, glm::value_ptr(camPositionVector));
 
     glUseProgram(0);
 
