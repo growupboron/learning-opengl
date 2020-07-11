@@ -1,6 +1,8 @@
 #include "include_libraries.h"
 #include "shader.h"
 #include "texture.h"
+#include "material.h"
+
 Vertex vertices[] = {
     // POSITION                  // COLOR                  // Texcoords
     glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec3(0.f, 0.f, -1.f),
@@ -43,11 +45,11 @@ void updateInput(GLFWwindow *window, glm::vec3 &position, glm::vec3 &rotation, g
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
     {
-        scale -= 0.05f;
+        position.z -= 0.05f;
     }
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
     {
-        scale += 0.05f;
+        position.z += 0.05f;
     }
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
@@ -152,6 +154,10 @@ int main()
 
     // ############## VAO, VBO, EBO ###########################
 
+
+    // Model Mesh
+
+
     GLuint VAO; // Vertex Array Buffer
     glCreateVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -194,7 +200,20 @@ int main()
  
     Texture texture_0("images/db_trans.png",GL_TEXTURE_2D,0);
     Texture texture_1("images/container.jpg", GL_TEXTURE_2D,1);
+    
+    
+    
+    // ################ MATERIALS ##############################
+    glm::vec3 ambientColor(0.1f);
+    glm::vec3 diffuseColor(1.f);
+    glm::vec3 specularColor(1.f);
+
+    Material material0(ambientColor,diffuseColor, specularColor, texture_0.getTextureUnit(), texture_1.getTextureUnit());
+    
     // ############## TRANSFORMATIONS ##########################
+
+    
+
 
     // rotate, scale and translate
 
@@ -264,6 +283,10 @@ int main()
         // send uniforms (variables from cpu to gpu)
         core_program.set1i(texture_0.getTextureUnit(), "texture0");
         core_program.set1i(texture_1.getTextureUnit(), "texture1");
+
+        material0.sendToShader(core_program);
+
+
         // move, rotate and scale
 
         // rotation.x += 1;
