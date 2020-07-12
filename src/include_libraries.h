@@ -23,3 +23,9 @@
 
 #include <SOIL2.h>
 
+#include "shader.h"
+#include "texture.h"
+#include "material.h"
+#include "vertex.h"
+#include "primitives.h"
+#include "mesh.h"

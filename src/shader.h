@@ -25,11 +25,94 @@ private:
     const int versionMajor;
     const int versionMinor;
 
-    std::string loadShaderSource(char *fileName);
+    std::string loadShaderSource(char *fileName)
+    {
 
-    GLuint loadShader(GLenum type, char *fileName);
+        std::string currentLine = "";
+        std::string finalsrc = "";
 
-    void linkProgram(GLuint vertexShader, GLuint geometryShader, GLuint fragmentShader);
+        std::ifstream input_file;
+
+        input_file.open(fileName);
+
+        if (input_file.is_open())
+        {
+            while (std::getline(input_file, currentLine))
+            {
+                finalsrc += currentLine + "\n";
+            }
+        }
+        else
+            std::cout << "ERROR:SHADER::COULD_NOT_OPEN_SHADER_FILE: " << fileName << std::endl;
+
+        input_file.close();
+
+        std::string shaderVersion =
+            std::to_string(versionMajor) +
+            std::to_string(versionMinor) +
+            "0";
+
+        // set version number in shader files
+        finalsrc.replace(finalsrc.find("#version"), 12, ("#version " + shaderVersion));
+        return finalsrc;
+    }
+
+    GLuint loadShader(GLenum type, char *fileName)
+    {
+
+        char infoLog[512];
+        GLint compileResult;
+
+        GLuint theShader = glCreateShader(type);
+
+        std::string shaderSrc = this->loadShaderSource(fileName);
+        const GLchar *theShadersrc = shaderSrc.c_str();
+
+        glShaderSource(theShader, 1, &theShadersrc, NULL);
+        glCompileShader(theShader);
+
+        // error checking
+
+        glGetShaderiv(theShader, GL_COMPILE_STATUS, &compileResult);
+        if (!compileResult)
+        {
+            glGetShaderInfoLog(theShader, 512, NULL, infoLog);
+            std::cout << "ERROR:LOADSHADERS::COULD_NOT_COMPILE_SHADER: " << fileName << std::endl;
+            std::cout << infoLog << std::endl;
+        }
+        return theShader;
+    }
+
+    void linkProgram(GLuint vertexShader, GLuint geometryShader, GLuint fragmentShader)
+    {
+
+        this->id = glCreateProgram();
+
+        glAttachShader(this->id, vertexShader);
+
+        if (geometryShader)
+            glAttachShader(this->id, geometryShader);
+
+        glAttachShader(this->id, fragmentShader);
+        glLinkProgram(this->id);
+
+        // error checking
+
+        char infoLog[512];
+        GLint compileResult;
+
+        glGetProgramiv(this->id, GL_LINK_STATUS, &compileResult);
+
+        if (!compileResult)
+        {
+            glGetProgramInfoLog(this->id, 512, NULL, infoLog);
+            std::cout << "ERROR:SHADER::COULD_NOT_LINK_PROGRAM" << std::endl;
+            std::cout << infoLog << std::endl;
+        }
+
+        // unlink program
+        glUseProgram(0);
+    }
 
 public:
     Shader(char *vertexFile, char *fragmentFile, const int verMaj, const int verMin, char *geometryFile = (char *)"")
@@ -105,93 +188,3 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
     }
 };
-
-std::string Shader::loadShaderSource(char *fileName)
-
-{
-
-    std::string currentLine = "";
-    std::string finalsrc = "";
-
-    std::ifstream input_file;
-
-    input_file.open(fileName);
-
-    if (input_file.is_open())
-    {
-        while (std::getline(input_file, currentLine))
-        {
-            finalsrc += currentLine + "\n";
-        }
-    }
-    else
-        std::cout << "ERROR:SHADER::COULD_NOT_OPEN_SHADER_FILE: " << fileName << std::endl;
-
-    input_file.close();
-
-    std::string shaderVersion =
-        std::to_string(versionMajor) +
-        std::to_string(versionMinor) +
-        "0";
-    
-    // set version number in shader files
-    finalsrc.replace(finalsrc.find("#version"),12,("#version " + shaderVersion ));
-    return finalsrc;
-}
-
-GLuint Shader::loadShader(GLenum type, char *fileName)
-{
-
-    char infoLog[512];
-    GLint compileResult;
-
-    GLuint theShader = glCreateShader(type);
-
-    std::string shaderSrc = this->loadShaderSource(fileName);
-    const GLchar *theShadersrc = shaderSrc.c_str();
-
-    glShaderSource(theShader, 1, &theShadersrc, NULL);
-    glCompileShader(theShader);
-
-    // error checking
-
-    glGetShaderiv(theShader, GL_COMPILE_STATUS, &compileResult);
-    if (!compileResult)
-    {
-        glGetShaderInfoLog(theShader, 512, NULL, infoLog);
-        std::cout << "ERROR:LOADSHADERS::COULD_NOT_COMPILE_SHADER: " << fileName << std::endl;
-        std::cout << infoLog << std::endl;
-    }
-    return theShader;
-}
-
-void Shader::linkProgram(GLuint vertexShader, GLuint geometryShader, GLuint fragmentShader)
-{
-
-    this->id = glCreateProgram();
-
-    glAttachShader(this->id, vertexShader);
-
-    if (geometryShader)
-        glAttachShader(this->id, geometryShader);
-
-    glAttachShader(this->id, fragmentShader);
-    glLinkProgram(this->id);
-
-    // error checking
-
-    char infoLog[512];
-    GLint compileResult;
-
-    glGetProgramiv(this->id, GL_LINK_STATUS, &compileResult);
-
-    if (!compileResult)
-    {
-        glGetProgramInfoLog(this->id, 512, NULL, infoLog);
-        std::cout << "ERROR:SHADER::COULD_NOT_LINK_PROGRAM" << std::endl;
-        std::cout << infoLog << std::endl;
-    }
-
-    // unlink program
-    glUseProgram(0);
-}

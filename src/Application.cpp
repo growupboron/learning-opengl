@@ -1,32 +1,6 @@
-#include "include_libraries.h"
-#include "shader.h"
-#include "texture.h"
-#include "material.h"
-#include "vertex.h"
-#include "primitives.h"
-#include "mesh.h"
+#include "game.h"
 
-void changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
-    {
-        GLint polygonMode;
-        glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
 
-        switch (polygonMode)
-        {
-        case GL_LINE:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            break;
-        case GL_FILL:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            break;
-
-        default:
-            break;
-        }
-    }
-}
 
 void updateInput(GLFWwindow *window, Mesh &mesh)
 {
@@ -71,10 +45,6 @@ void updateInput(GLFWwindow *window, Mesh &mesh)
     }
 }
 
-void framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)
-{
-    glViewport(0, 0, fbW, fbH);
-}
 
 GLFWwindow *createWindow(
     const char *title,
@@ -113,7 +83,7 @@ GLFWwindow *createWindow(
     }
 
     // FOR RESIZABLE WINDOWS
-    glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
+    glfwSetFramebufferSizeCallback(window, Game::framebuffer_resize_callback);
 
     // FOR NON RESIZABLE WINDOWS
 
@@ -177,7 +147,7 @@ int main()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // callback that changes the render mode when you press tab
-    glfwSetKeyCallback(window, changeRenderMode);
+    glfwSetKeyCallback(window, Game::changeRenderMode);
     // ################## SHADERS ############################
     Shader core_program((char *)"res/shaders/vertex_core.glsl", (char *)"res/shaders/fragment_core.glsl", GLMajorVersion, GLMinorVersion);
     // GLuint core_program;
