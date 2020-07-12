@@ -60,8 +60,9 @@ void Game::initWindow(
     this->window = window;
 }
 
-void Game::initGLEW(){
-        // INIT GLEW (NEEDS WINDOW AND OPENGL CONTEXT)
+void Game::initGLEW()
+{
+    // INIT GLEW (NEEDS WINDOW AND OPENGL CONTEXT)
     glewExperimental = GL_TRUE;
 
     if (glewInit() != GLEW_OK)
@@ -72,9 +73,9 @@ void Game::initGLEW(){
     }
 }
 
-
-void Game::initOpenGLOptions(){
-     // enable the z depth
+void Game::initOpenGLOptions()
+{
+    // enable the z depth
     glEnable(GL_DEPTH_TEST);
 
     // remove the non rendered face
@@ -94,6 +95,20 @@ void Game::initOpenGLOptions(){
     glfwSetKeyCallback(window, Game::changeRenderMode);
 }
 
+void Game::initMatrices()
+{
+    // not initializing as identity will cause a black screen.
+    this->ViewMatrix = glm::mat4(1.f);
+    this->ViewMatrix = glm::lookAt(this->camPosition, this->camPosition + this->camFront, this->worldUp);
+
+    // not initializing as identity will cause a black screen.
+    this->ProjectionMatrix = glm::mat4(1.f);
+    this->ProjectionMatrix = glm::perspective(
+        glm::radians(this->fov),
+        static_cast<float>(this->framebufferWidth) / static_cast<float>(this->framebufferHeight),
+        this->nearPlane,
+        this->farPlane);
+}
 // Constructors / Destructors
 Game::Game(const char *title,
            const int height,
@@ -108,10 +123,19 @@ Game::Game(const char *title,
     this->framebufferHeight = WINDOW_HEIGHT;
     this->framebufferWidth = WINDOW_WIDTH;
 
+    this->worldUp = glm::vec3(0.f, 1.f, 0.f);     // straight up in y axis
+    this->camFront = glm::vec3(0.f, 0.f, -1.f);   // straight ahead
+    this->camPosition = glm::vec3(0.f, 0.f, 1.f); // set to origin as default
+
+    this->fov = 90.f;       // field of view (degrees, to be converted later)
+    this->nearPlane = 0.1f; // clip stuff slightly behind the camera, so we don't see it disappear
+    this->farPlane = 1000.f;
+
     this->initGLFW();
     this->initWindow(title, resizable);
     this->initGLEW();
     this->initOpenGLOptions();
+    this->initMatrices();
 }
 
 Game::~Game()
@@ -123,27 +147,55 @@ Game::~Game()
 
 // Accessors
 
-int Game::getWindowShouldClose(){
+int Game::getWindowShouldClose()
+{
     return glfwWindowShouldClose(this->window);
 }
 
 // Modifiers
 
-void Game::setWindowShouldClose(){
+void Game::setWindowShouldClose()
+{
     glfwSetWindowShouldClose(this->window, GLFW_TRUE);
 }
 
-
 //  Functions
 
-void Game::update(){
-
+void Game::update()
+{
+    glfwPollEvents();
+    // Update Inputs
 }
 
-void Game::render(){
+void Game::render()
+{
 
+    // DRAW CANVAS
+
+    // CLEAR
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    // select program
+
+    // move, rotate and scale
+
+    // update framebuffersize and projection matrix
+
+    // activate texture
+
+    // Bind vertex array object (data for trinangle) and DRAW
+
+    // ENDDRAW
+
+    // FORCE EXECUTION OF GL COMMANDS IN FINITE TIME
+    glFlush();
+
+    // reset all bindings to free up space
+    glBindVertexArray(0);
+    glUseProgram(0);
+    glActiveTexture(0);
 }
-
 
 // Static Functions
 void Game::framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)

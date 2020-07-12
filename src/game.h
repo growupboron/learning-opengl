@@ -1,7 +1,6 @@
 #pragma once
 #include "include_libraries.h"
 
-
 class Game
 {
 
@@ -19,11 +18,23 @@ private:
     const int GL_VERSION_MAJOR;
     const int GL_VERSION_MINOR;
 
+    // matrices
+    glm::mat4 ViewMatrix;
+    glm::vec3 camPosition;
+    glm::vec3 worldUp;
+    glm::vec3 camFront;
+
+    glm::mat4 ProjectionMatrix;
+    float fov;
+    float nearPlane;
+    float farPlane;
+
     // private functions
-        void initGLFW();
+    void initGLFW();
     void initWindow(const char *title, bool resizable);
     void initGLEW(); // AFTER CONTEXT CREATION !!
     void initOpenGLOptions();
+    void initMatrices();
     // Static Variables
 public:
     // Constructors
@@ -44,7 +55,6 @@ public:
     void setWindowShouldClose();
 
     // Functions
-
 
     void update();
     void render();
