@@ -2,13 +2,15 @@
 #include "shader.h"
 #include "texture.h"
 #include "material.h"
+#include "vertex.h"
+#include "mesh.h"
 
 Vertex vertices[] = {
     // POSITION                  // COLOR                  // Texcoords
-    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec3(0.f, 0.f, -1.f),
-    glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f), glm::vec3(0.f, 0.f, -1.f),
-    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f), glm::vec3(0.f, 0.f, -1.f),
-    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f), glm::vec3(0.f, 0.f, -1.f)};
+    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec3(0.f, 0.f, 1.f),
+    glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f), glm::vec3(0.f, 0.f, 1.f),
+    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f), glm::vec3(0.f, 0.f, 1.f),
+    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f), glm::vec3(0.f, 0.f, 1.f)};
 
 unsigned int numberOfVertices = sizeof(vertices) / sizeof(Vertex);
 
@@ -17,39 +19,40 @@ GLuint indeces[] = {
 
 unsigned int numberOfIndecs = sizeof(indeces) / sizeof(GLuint);
 
-void updateInput(GLFWwindow *window, glm::vec3 &position, glm::vec3 &rotation, glm::vec3 &scale)
+void updateInput(GLFWwindow *window, Mesh &mesh)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        position.y += 0.01f;
+        mesh.move(glm::vec3(0.f,+0.01f, 0.f));
+        
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        position.y -= 0.01f;
+        mesh.move(glm::vec3(0.f,-0.01f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        position.x -= 0.01f;
+       mesh.move(glm::vec3(-0.01f, 0.f,0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        position.x += 0.01f;
+        mesh.move(glm::vec3(0.01f, 0.f,0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        rotation.y -= 1.f;
+        mesh.rotate(glm::vec3(0.f,-1.f,0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        rotation.y += 1.f;
+        mesh.rotate(glm::vec3(0.f,1.f,0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
     {
-        position.z -= 0.05f;
+        mesh.move(glm::vec3(0.f, 0.f,-0.05f));
     }
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
     {
-        position.z += 0.05f;
+        mesh.move(glm::vec3(0.f, 0.f,-0.05f));
     }
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
@@ -152,48 +155,10 @@ int main()
     //     glfwTerminate();
     // }
 
-    // ############## VAO, VBO, EBO ###########################
-
 
     // Model Mesh
+    Mesh testMesh(vertices, numberOfVertices, indeces, numberOfIndecs);
 
-
-    GLuint VAO; // Vertex Array Buffer
-    glCreateVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    GLuint VBO; // Vertex buffer object
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    GLuint EBO; // Element buffer object
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indeces), indeces, GL_STATIC_DRAW);
-
-    // ############## INPUT ASSEMBLY ###########################
-
-    // set VertexAttributePointers and enable
-
-    // you can use this instead of zero if the core_program is available. ^^
-    // GLuint attribLocation = glGetAttribLocation(core_program, "vertex_position");
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, position));
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, color));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, texcoord));
-    glEnableVertexAttribArray(2);
-
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(3);
-
-    // unbind everything
-
-    glBindVertexArray(0);
 
     // ################## TEXTURES #############################
 
@@ -214,21 +179,6 @@ int main()
 
     
 
-
-    // rotate, scale and translate
-
-    // not initializing as identity will cause a black screen.
-    glm::mat4 ModelMatrix(1.f); // Identitiy Model Matrix
-
-    glm::vec3 position = glm::vec3(0.f, 0.f, 0.f);
-    glm::vec3 rotation = glm::vec3(0.f, 0.f, 0.f);
-    glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
-
-    ModelMatrix = glm::translate(ModelMatrix, glm::vec3(position));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.x), glm::vec3(1.f, 0.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.y), glm::vec3(0.f, 1.f, 0.f));
-    ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.z), glm::vec3(0.f, 0.f, 1.f));
-    ModelMatrix = glm::scale(ModelMatrix, scale);
 
     // camera configration
 
@@ -257,7 +207,6 @@ int main()
     glm::vec3 lightPos0(0.f, 0.f, 1.f);
     core_program.use();
     // pass in model matrix to vertex shader
-    core_program.setMat4v(ModelMatrix, "ModelMatrix", GL_FALSE);
     core_program.setMat4v(ViewMatrix, "ViewMatrix", GL_FALSE);
     core_program.setMat4v(ProjectionMatrix, "ProjectionMatrix", GL_FALSE);
 
@@ -271,7 +220,7 @@ int main()
     {
 
         // UPDATE
-        updateInput(window, position, rotation, scale);
+        updateInput(window, testMesh);
         // DRAW CANVAS
 
         // CLEAR
@@ -291,15 +240,8 @@ int main()
 
         // rotation.x += 1;
 
-        ModelMatrix = glm::mat4(1.f);
 
-        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(position));
-        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.x), glm::vec3(1.f, 0.f, 0.f));
-        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.y), glm::vec3(0.f, 1.f, 0.f));
-        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(rotation.z), glm::vec3(0.f, 0.f, 1.f));
-        ModelMatrix = glm::scale(ModelMatrix, scale);
-
-        core_program.setMat4v(ModelMatrix, "ModelMatrix");
+        // update framebuffersize and projection matrix
 
         // in case of resize ( to prevent stretching )
         glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
@@ -322,12 +264,8 @@ int main()
 
         // Bind vertex array object (data for trinangle)
 
-        glBindVertexArray(VAO);
 
-        // DRAW
-
-        // glDrawArrays() draw all arrays without index buffer
-        glDrawElements(GL_TRIANGLES, numberOfIndecs, GL_UNSIGNED_INT, 0);
+        testMesh.render(&core_program);
 
         // ENDDRAW
         glfwSwapBuffers(window);
