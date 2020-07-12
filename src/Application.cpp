@@ -3,57 +3,66 @@
 #include "texture.h"
 #include "material.h"
 #include "vertex.h"
+#include "primitives.h"
 #include "mesh.h"
 
-Vertex vertices[] = {
-    // POSITION                  // COLOR                  // Texcoords
-    glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.f, 0.f, 0.f), glm::vec2(0.f, 1.f), glm::vec3(0.f, 0.f, 1.f),
-    glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.f, 1.f, 0.f), glm::vec2(0.f, 0.f), glm::vec3(0.f, 0.f, 1.f),
-    glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.f, 0.f, 1.f), glm::vec2(1.f, 0.f), glm::vec3(0.f, 0.f, 1.f),
-    glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.8f, 1.f, 0.3f), glm::vec2(1.f, 1.f), glm::vec3(0.f, 0.f, 1.f)};
+void changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+    {
+        GLint polygonMode;
+        glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
 
-unsigned int numberOfVertices = sizeof(vertices) / sizeof(Vertex);
+        switch (polygonMode)
+        {
+        case GL_LINE:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            break;
+        case GL_FILL:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            break;
 
-GLuint indeces[] = {
-    0, 1, 2, 0, 2, 3};
-
-unsigned int numberOfIndecs = sizeof(indeces) / sizeof(GLuint);
+        default:
+            break;
+        }
+    }
+}
 
 void updateInput(GLFWwindow *window, Mesh &mesh)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        mesh.move(glm::vec3(0.f,+0.01f, 0.f));
-        
+        mesh.move(glm::vec3(0.f, +0.01f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        mesh.move(glm::vec3(0.f,-0.01f, 0.f));
+        mesh.move(glm::vec3(0.f, -0.01f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-       mesh.move(glm::vec3(-0.01f, 0.f,0.f));
+        mesh.move(glm::vec3(-0.01f, 0.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        mesh.move(glm::vec3(0.01f, 0.f,0.f));
+        mesh.move(glm::vec3(0.01f, 0.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        mesh.rotate(glm::vec3(0.f,-1.f,0.f));
+        mesh.rotate(glm::vec3(0.f, -1.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        mesh.rotate(glm::vec3(0.f,1.f,0.f));
+        mesh.rotate(glm::vec3(0.f, 1.f, 0.f));
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
     {
-        mesh.move(glm::vec3(0.f, 0.f,-0.05f));
+        mesh.move(glm::vec3(0.f, 0.f, -0.05f));
     }
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
     {
-        mesh.move(glm::vec3(0.f, 0.f,-0.05f));
+        mesh.move(glm::vec3(0.f, 0.f, -0.05f));
     }
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwDestroyWindow(window);
@@ -67,43 +76,40 @@ void framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)
     glViewport(0, 0, fbW, fbH);
 }
 
-int main()
+GLFWwindow *createWindow(
+    const char *title,
+    const int height,
+    const int width,
+    int &fbheight,
+    int &fbwidth,
+    int GLMajorVersion,
+    int GLMinorVersion,
+    bool resizable)
 {
+        // CREATE WINDOW
 
-    // INITIALIZE GLFW LIBRARY
-
-    if (!glfwInit())
-    {
-        std::cout << "ERROR:APPLICATION.CPP::GLFW_COULD_NOT_BE_INITIALIZED" << std::endl;
-        return -1;
-    }
-
-    // CREATE WINDOW
-
-    const int WINDOW_WIDTH = 1280;
-    const int WINDOW_HEIGHT = 720;
-    int framebufferWidth = 0;
-    int framebufferHeight = 0;
-
+    // do not allow to use fixed function pipeline
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // SET OPENGL VERSION MAJOR.MINOR
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GLMajorVersion);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GLMinorVersion);
 
     // SET WHETHER OPENGL IS RESIZABLE OR NOT
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, resizable);
 
     // macOS
     // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Learnin' OpenGL", NULL, NULL);
+    // creates a window and context, but does not change the current context
+    // to set the context as current, do it separately
+    GLFWwindow *window = glfwCreateWindow(width, height, title, NULL, NULL);
 
     if (!window)
     {
         glfwTerminate();
         std::cout << "ERROR:APPLICATION.CPP::GLFW_WINDOW_COULD_NOT_BE_CREATED" << std::endl;
-        return -1;
+        exit(1);
     }
 
     // FOR RESIZABLE WINDOWS
@@ -112,7 +118,7 @@ int main()
     // FOR NON RESIZABLE WINDOWS
 
     // enabling this to get initial window size, before we hit the while loop.
-    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+    glfwGetFramebufferSize(window,&fbwidth, &fbheight);
     // glViewport(0, 0, framebufferWidth, framebufferHeight);
 
     glfwMakeContextCurrent(window); // IMPORTANT FOR GLEW!!
@@ -129,6 +135,29 @@ int main()
         glfwTerminate();
     }
 
+    return window;
+
+
+}
+
+int main()
+{
+
+    // INITIALIZE GLFW LIBRARY
+
+    if (!glfwInit())
+    {
+        std::cout << "ERROR:APPLICATION.CPP::GLFW_COULD_NOT_BE_INITIALIZED" << std::endl;
+        return -1;
+    }
+    int GLMajorVersion = 4;
+    int GLMinorVersion = 5;
+    const int WINDOW_WIDTH = 1280;
+    const int WINDOW_HEIGHT = 720;
+    int framebufferWidth = 0;
+    int framebufferHeight = 0;
+
+    GLFWwindow* window = createWindow("Learnin' OpenGL",WINDOW_HEIGHT, WINDOW_WIDTH,framebufferHeight, framebufferWidth,GLMajorVersion,GLMinorVersion,GL_TRUE);
     // ############### OPENGL OPTIONS ########################
 
     // enable the z depth
@@ -147,38 +176,33 @@ int main()
     // use GL_LINE when you just wanna draw the outlines
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+    // callback that changes the render mode when you press tab
+    glfwSetKeyCallback(window, changeRenderMode);
     // ################## SHADERS ############################
-    Shader core_program((char *)"res/shaders/vertex_core.glsl", (char *)"res/shaders/fragment_core.glsl");
+    Shader core_program((char *)"res/shaders/vertex_core.glsl", (char *)"res/shaders/fragment_core.glsl", GLMajorVersion, GLMinorVersion);
     // GLuint core_program;
     // if (!loadShaders(core_program))
     // {
     //     glfwTerminate();
     // }
 
-
     // Model Mesh
-    Mesh testMesh(vertices, numberOfVertices, indeces, numberOfIndecs);
-
+    Triangle tempQuad = Triangle();
+    Mesh mainMesh(&tempQuad);
 
     // ################## TEXTURES #############################
 
- 
-    Texture texture_0("images/db_trans.png",GL_TEXTURE_2D,0);
-    Texture texture_1("images/container.jpg", GL_TEXTURE_2D,1);
-    
-    
-    
+    Texture texture_0("images/db_trans.png", GL_TEXTURE_2D, 0);
+    Texture texture_1("images/container.jpg", GL_TEXTURE_2D, 1);
+
     // ################ MATERIALS ##############################
     glm::vec3 ambientColor(0.1f);
     glm::vec3 diffuseColor(1.f);
     glm::vec3 specularColor(1.f);
 
-    Material material0(ambientColor,diffuseColor, specularColor, texture_0.getTextureUnit(), texture_1.getTextureUnit());
-    
+    Material material0(ambientColor, diffuseColor, specularColor, texture_0.getTextureUnit(), texture_1.getTextureUnit());
+
     // ############## TRANSFORMATIONS ##########################
-
-    
-
 
     // camera configration
 
@@ -220,7 +244,7 @@ int main()
     {
 
         // UPDATE
-        updateInput(window, testMesh);
+        updateInput(window, mainMesh);
         // DRAW CANVAS
 
         // CLEAR
@@ -235,11 +259,9 @@ int main()
 
         material0.sendToShader(core_program);
 
-
         // move, rotate and scale
 
         // rotation.x += 1;
-
 
         // update framebuffersize and projection matrix
 
@@ -256,7 +278,7 @@ int main()
         core_program.setMat4v(ProjectionMatrix, "ProjectionMatrix", GL_FALSE);
 
         // activate texture
-        texture_0.bind(); 
+        texture_0.bind();
         // glActiveTexture(GL_TEXTURE0);
         // glBindTexture(GL_TEXTURE_2D, texture0);
 
@@ -264,8 +286,7 @@ int main()
 
         // Bind vertex array object (data for trinangle)
 
-
-        testMesh.render(&core_program);
+        mainMesh.render(&core_program);
 
         // ENDDRAW
         glfwSwapBuffers(window);

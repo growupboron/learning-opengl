@@ -22,6 +22,8 @@ class Shader
 {
 private:
     GLuint id; // program id
+    const int versionMajor;
+    const int versionMinor;
 
     std::string loadShaderSource(char *fileName);
 
@@ -30,8 +32,10 @@ private:
     void linkProgram(GLuint vertexShader, GLuint geometryShader, GLuint fragmentShader);
 
 public:
-    Shader(char *vertexFile, char *fragmentFile, char *geometryFile = (char *)"")
+    Shader(char *vertexFile, char *fragmentFile, const int verMaj, const int verMin, char *geometryFile = (char *)"")
+        : versionMajor(verMaj), versionMinor(verMin)
     {
+
         // init
         GLuint vertexShader = 0;
         GLuint geometryShader = 0;
@@ -65,7 +69,7 @@ public:
     {
         glUseProgram(0);
     }
-    
+
     void set1i(GLint value, const GLchar *name)
     {
         glUniform1i(glGetUniformLocation(this->id, name), value);
@@ -79,24 +83,23 @@ public:
     void setVec2f(glm::fvec2 value, const GLchar *name)
     {
         glUniform2fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
-
     }
 
     void setVec3f(glm::fvec3 value, const GLchar *name)
     {
         glUniform3fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
     }
-    
+
     void setVec4f(glm::fvec4 value, const GLchar *name)
     {
         glUniform4fv(glGetUniformLocation(this->id, name), 1, glm::value_ptr(value));
     }
-    
+
     void setMat3v(glm::mat3 value, const GLchar *name, GLboolean transpose = GL_FALSE)
     {
         glUniformMatrix3fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
     }
-    
+
     void setMat4v(glm::mat4 value, const GLchar *name, GLboolean transpose = GL_FALSE)
     {
         glUniformMatrix4fv(glGetUniformLocation(this->id, name), 1, transpose, glm::value_ptr(value));
@@ -125,6 +128,14 @@ std::string Shader::loadShaderSource(char *fileName)
         std::cout << "ERROR:SHADER::COULD_NOT_OPEN_SHADER_FILE: " << fileName << std::endl;
 
     input_file.close();
+
+    std::string shaderVersion =
+        std::to_string(versionMajor) +
+        std::to_string(versionMinor) +
+        "0";
+    
+    // set version number in shader files
+    finalsrc.replace(finalsrc.find("#version"),12,("#version " + shaderVersion ));
     return finalsrc;
 }
 
