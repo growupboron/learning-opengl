@@ -29,3 +29,4 @@
 #include "vertex.h"
 #include "primitives.h"
 #include "mesh.h"
+#include "camera.h"

@@ -3,7 +3,7 @@
 int main()
 {
 
-    Game game("Learning OPenGL", 640, 480, 4, 5, true);
+    Game game("Learning OPenGL", 1600, 900, 4, 4, true);
 
     while (!game.getWindowShouldClose())
     {

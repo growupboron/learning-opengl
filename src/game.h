@@ -68,6 +68,9 @@ private:
     float nearPlane;
     float farPlane;
 
+    // Cameras
+    Camera camera;
+
     // Shaders
     std::vector<Shader *> shaders;
 
