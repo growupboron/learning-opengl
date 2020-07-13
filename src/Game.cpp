@@ -109,10 +109,98 @@ void Game::initMatrices()
         this->nearPlane,
         this->farPlane);
 }
+
+void Game::initShaders()
+{
+    this->shaders.push_back(
+        new Shader((char *)"res/shaders/vertex_core.glsl",
+                   (char *)"res/shaders/fragment_core.glsl",
+                   this->GL_VERSION_MAJOR,
+                   this->GL_VERSION_MINOR));
+}
+
+void Game::initTextures()
+{
+    // texture 0
+    this->textures.push_back(new Texture("images/db_trans.png", GL_TEXTURE_2D));
+    this->textures.push_back(new Texture("images/db_trans_specular.png", GL_TEXTURE_2D));
+
+    // texture 1
+    this->textures.push_back(new Texture("images/texture.jpg", GL_TEXTURE_2D));
+    this->textures.push_back(new Texture("images/texture_specular.jpg", GL_TEXTURE_2D));
+}
+
+void Game::initMaterials()
+{
+    glm::vec3 ambientColor(0.1f);
+    glm::vec3 diffuseColor(1.f);
+    glm::vec3 specularColor(1.f);
+
+    this->materials.push_back(
+        new Material(ambientColor,
+                     diffuseColor,
+                     specularColor,
+                     0,
+                     1));
+}
+
+void Game::initMeshes()
+{
+    Quad tempQuad = Quad();
+    this->meshes.push_back(new Mesh(&tempQuad));
+
+    Triangle tempTria = Triangle();
+    this->meshes.push_back(new Mesh(&tempTria));
+}
+
+void Game::initLights()
+{
+    this->lights.push_back(new glm::vec3(0.f, 0.f, 1.f));
+}
+
+void Game::initUniforms()
+{
+    this->shaders[SHADER_CORE_PROGRAM]->use();
+    this->shaders[SHADER_CORE_PROGRAM]->use();
+    // pass in model matrix to vertex shader
+    this->shaders[SHADER_CORE_PROGRAM]->setMat4v(this->ViewMatrix, "ViewMatrix", GL_FALSE);
+    this->shaders[SHADER_CORE_PROGRAM]->setMat4v(this->ProjectionMatrix, "ProjectionMatrix", GL_FALSE);
+
+    // // pass in the lighting data
+    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(*this->lights[0], "lightPos0");
+    this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camPosition, "cameraPos");
+    this->shaders[SHADER_CORE_PROGRAM]->unuse();
+}
+
+void Game::updateUniforms()
+{
+
+    // send uniforms (variables from cpu to gpu)
+    this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
+    this->shaders[SHADER_CORE_PROGRAM]->set1i(1, "texture1");
+
+    // move, rotate and scale
+
+    // rotation.x += 1;
+
+    // update framebuffersize and projection matrix
+
+    // in case of resize ( to prevent stretching )
+    glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
+
+    ProjectionMatrix = glm::perspective(
+        glm::radians(this->fov),
+        static_cast<float>(this->framebufferWidth) / static_cast<float>(this->framebufferHeight),
+        this->nearPlane,
+        this->farPlane);
+
+    this->shaders[SHADER_CORE_PROGRAM]->setMat4v(this->ViewMatrix, "ViewMatrix", GL_FALSE);
+    this->shaders[SHADER_CORE_PROGRAM]->setMat4v(this->ProjectionMatrix, "ProjectionMatrix", GL_FALSE);
+}
 // Constructors / Destructors
 Game::Game(const char *title,
-           const int height,
            const int width,
+           const int height,
            int GL_VERSION_MAJOR,
            int GL_VERSION_MINOR,
            bool resizable)
@@ -136,6 +224,12 @@ Game::Game(const char *title,
     this->initGLEW();
     this->initOpenGLOptions();
     this->initMatrices();
+    this->initShaders();
+    this->initTextures();
+    this->initMaterials();
+    this->initMeshes();
+    this->initLights();
+    this->initUniforms();
 }
 
 Game::~Game()
@@ -143,27 +237,39 @@ Game::~Game()
 {
     glfwDestroyWindow(this->window);
     glfwTerminate();
+
+    for (size_t i = 0; i < this->shaders.size(); i++)
+        delete this->shaders[i];
+
+    for (size_t i = 0; i < this->textures.size(); i++)
+        delete this->textures[i];
+
+    for (size_t i = 0; i < this->materials.size(); i++)
+        delete this->materials[i];
+
+    for (size_t i = 0; i < this->meshes.size(); i++)
+        delete this->meshes[i];
+    for (size_t i = 0; i < this->lights.size(); i++)
+        delete this->lights[i];
 }
 
 // Accessors
-
 int Game::getWindowShouldClose()
 {
     return glfwWindowShouldClose(this->window);
 }
 
 // Modifiers
-
 void Game::setWindowShouldClose()
 {
     glfwSetWindowShouldClose(this->window, GLFW_TRUE);
 }
 
 //  Functions
-
 void Game::update()
 {
     glfwPollEvents();
+    this->updateInput(this->window, *this->meshes[MESH_QUAD]);
     // Update Inputs
 }
 
@@ -176,25 +282,29 @@ void Game::render()
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    // update uniforms
+    this->shaders[SHADER_CORE_PROGRAM]->use();
+    this->updateUniforms();
+    this->materials[MAT_1]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
     // select program
 
-    // move, rotate and scale
-
-    // update framebuffersize and projection matrix
-
     // activate texture
+    this->textures[TEX_CONTAINER]->bind(0);
+    this->textures[TEX_CONTAINER_SPECULAR]->bind(1);
 
-    // Bind vertex array object (data for trinangle) and DRAW
+    this->meshes[MESH_QUAD]->render(this->shaders[SHADER_CORE_PROGRAM]);
 
     // ENDDRAW
+    glfwSwapBuffers(window);
 
     // FORCE EXECUTION OF GL COMMANDS IN FINITE TIME
     glFlush();
 
     // reset all bindings to free up space
     glBindVertexArray(0);
-    glUseProgram(0);
-    glActiveTexture(0);
+    this->shaders[SHADER_CORE_PROGRAM]->unuse();
+    this->textures[TEX_PUSHEEN]->unbind();
+    this->textures[TEX_CONTAINER]->unbind();
 }
 
 // Static Functions
@@ -222,5 +332,48 @@ void Game::changeRenderMode(GLFWwindow *window, int key, int scancode, int actio
         default:
             break;
         }
+    }
+}
+
+void Game::updateInput(GLFWwindow *window, Mesh &mesh)
+{
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        mesh.move(glm::vec3(0.f, +0.01f, 0.f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        mesh.move(glm::vec3(0.f, -0.01f, 0.f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        mesh.move(glm::vec3(-0.01f, 0.f, 0.f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        mesh.move(glm::vec3(0.01f, 0.f, 0.f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+        mesh.rotate(glm::vec3(0.f, -1.f, 0.f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+        mesh.rotate(glm::vec3(0.f, 1.f, 0.f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    {
+        mesh.move(glm::vec3(0.f, 0.f, -0.05f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+    {
+        mesh.move(glm::vec3(0.f, 0.f, +0.05f));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        exit(0);
     }
 }

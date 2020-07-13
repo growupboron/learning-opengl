@@ -18,13 +18,12 @@ private:
     int width;
     int height;
     int type;
-    unsigned int textureUnit;
 
 public:
-    Texture(const char *filename, GLenum type, GLuint texture_unit)
+    Texture(const char *filename, GLenum type)
     {
         this->type = type;
-        this->textureUnit = texture_unit;
+        
         unsigned char *image = SOIL_load_image(filename, &this->width, &this->height, NULL, SOIL_LOAD_RGBA);
 
         // create and try to find the texture
@@ -61,11 +60,11 @@ public:
     }
 
     inline GLuint getId() const { return this->id; }
-    inline GLint getTextureUnit() const { return this->textureUnit; }
-    void bind()
+    
+    void bind(const GLint textureUnit)
     {
 
-        glActiveTexture(GL_TEXTURE0 + this->textureUnit);
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
 
         glBindTexture(this->type, this->id);
     }

@@ -1,6 +1,31 @@
 #pragma once
 #include "include_libraries.h"
 
+// Enumerations
+enum shader_enum
+{
+    SHADER_CORE_PROGRAM = 0
+};
+
+enum texture_enum
+{
+    TEX_PUSHEEN = 0,
+    TEX_PUSHEEN_SPECULAR = 1,
+    TEX_CONTAINER = 2,
+    TEX_CONTAINER_SPECULAR = 3
+};
+
+enum material_enum
+{
+    MAT_1 = 0
+};
+
+enum mesh_enum
+{
+    MESH_QUAD = 0,
+    MESH_TRIANGLE = 1,
+};
+
 class Game
 {
 
@@ -29,12 +54,36 @@ private:
     float nearPlane;
     float farPlane;
 
+    // Shaders
+    std::vector<Shader *> shaders;
+
+    // Textures
+    std::vector<Texture *> textures;
+
+    // Material
+    std::vector<Material *> materials;
+
+    // Meshes
+    std::vector<Mesh *> meshes;
+
+    // Lights (positions)
+    std::vector<glm::vec3 *> lights;
+
     // private functions
     void initGLFW();
     void initWindow(const char *title, bool resizable);
     void initGLEW(); // AFTER CONTEXT CREATION !!
     void initOpenGLOptions();
     void initMatrices();
+    void initShaders();
+    void initTextures();
+    void initMaterials();
+    void initMeshes();
+    void initLights();
+    void initUniforms();
+
+    void updateUniforms();
+
     // Static Variables
 public:
     // Constructors
@@ -62,4 +111,5 @@ public:
     // Static Functions
     static void framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH);
     static void changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods);
+    static void updateInput(GLFWwindow *window, Mesh &mesh);
 };
