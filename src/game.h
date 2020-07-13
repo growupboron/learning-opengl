@@ -43,6 +43,20 @@ private:
     const int GL_VERSION_MAJOR;
     const int GL_VERSION_MINOR;
 
+    // Delta Time
+    float dt;
+    float curTime;
+    float lastTime;
+
+    // Mouse input
+    double lastMouseX;
+    double lastMouseY;
+    double mouseX;
+    double mouseY;
+    double mouseOffsetX;
+    double mouseOffsetY;
+    bool firstMouse;
+
     // matrices
     glm::mat4 ViewMatrix;
     glm::vec3 camPosition;
@@ -108,8 +122,12 @@ public:
     void update();
     void render();
 
+    void updateDeltaTime();
+    void updateKeyboardInput();
+    void updateMouseInput();
+
     // Static Functions
     static void framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH);
     static void changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods);
-    static void updateInput(GLFWwindow *window, Mesh &mesh);
+    static void oldUpdateInput(GLFWwindow *window, Mesh &mesh);
 };
