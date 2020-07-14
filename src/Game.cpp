@@ -105,7 +105,7 @@ void Game::initTextures()
 
 void Game::initMaterials()
 {
-	this->materials.push_back(new Material(glm::vec3(0.4f), glm::vec3(1.f), glm::vec3(2.f),
+	this->materials.push_back(new Material(glm::vec3(0.4f), glm::vec3(1.f), glm::vec3(1.f),
 										   0, 1));
 }
 
@@ -119,17 +119,16 @@ void Game::initModels()
 
 
 
-	std::vector<Vertex> mesh = loadObjFile("models/bezier.obj");
+	std::vector<Vertex> mesh = loadObjFile("models/torus.obj");
 	meshes.push_back(
 		new Mesh(
 			mesh.data(),
 			mesh.size(),
 			NULL,
-			0,
-			glm::vec3(4.f, 0.f, 2.f)));
+			0));
 
 	this->models.push_back(new Model(
-		glm::vec3(0.f),
+		glm::vec3(4.f, 0.f, 4.f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
@@ -315,7 +314,7 @@ void Game::updateKeyboardInput()
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_C) == GLFW_PRESS)
 	{
-		this->camPosition.y -= 0.05f;
+		this->models[0]->rotate(glm::vec3(0.f,1.f,0.f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{

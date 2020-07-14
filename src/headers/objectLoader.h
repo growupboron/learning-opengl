@@ -124,20 +124,16 @@ static std::vector<Vertex> loadObjFile(const char *filename)
         else
         {
         }
-
-        vertices.resize(vertexPositionIndeces.size(), Vertex());
-
-        for (size_t i = 0; i < vertices.size(); ++i)
-        {
-            vertices[i].position = vertexPositions[vertexPositionIndeces[i] - 1];
-            vertices[i].texcoord = vertexTexCoords[vertexTexCoordIndeces[i] - 1];
-            vertices[i].normal = vertexNormals[vertexNormalIndeces[i] - 1];
-            vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
-        }
-
-        // DEBUG
     }
+    vertices.resize(vertexPositionIndeces.size(), Vertex());
 
+    for (size_t i = 0; i < vertices.size(); ++i)
+    {
+        vertices[i].position = vertexPositions[vertexPositionIndeces[i] - 1];
+        vertices[i].texcoord = vertexTexCoords[vertexTexCoordIndeces[i] - 1];
+        vertices[i].normal = vertexNormals[vertexNormalIndeces[i] - 1];
+        vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
+    }
     std::cout << "Nr of vertices" << vertices.size() << std::endl;
     std::cout << "Nr of positions" << vertexPositions.size() << std::endl;
     std::cout << "Nr of texcoords" << vertexTexCoords.size() << std::endl;
