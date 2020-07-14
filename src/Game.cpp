@@ -6,15 +6,15 @@ void Game::initGLFW()
 	//INIT GLFW
 	if (glfwInit() == GLFW_FALSE)
 	{
-		std::cout << "ERROR::GLFW_INIT_FAILED" << "\n";
+		std::cout << "ERROR::GLFW_INIT_FAILED"
+				  << "\n";
 		glfwTerminate();
 	}
 }
 
 void Game::initWindow(
-	const char* title,
-	bool resizable
-)
+	const char *title,
+	bool resizable)
 {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, this->GL_VERSION_MAJOR);
@@ -27,7 +27,8 @@ void Game::initWindow(
 
 	if (this->window == nullptr)
 	{
-		std::cout << "ERROR::GLFW_WINDOW_INIT_FAILED" << "\n";
+		std::cout << "ERROR::GLFW_WINDOW_INIT_FAILED"
+				  << "\n";
 		glfwTerminate();
 	}
 
@@ -48,7 +49,8 @@ void Game::initGLEW()
 	//Error
 	if (glewInit() != GLEW_OK)
 	{
-		std::cout << "ERROR::MAIN.CPP::GLEW_INIT_FAILED" << "\n";
+		std::cout << "ERROR::MAIN.CPP::GLEW_INIT_FAILED"
+				  << "\n";
 		glfwTerminate();
 	}
 }
@@ -68,6 +70,7 @@ void Game::initOpenGLOptions()
 
 	//Input
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetKeyCallback(window, this->changeRenderMode);
 }
 
 void Game::initMatrices()
@@ -80,14 +83,13 @@ void Game::initMatrices()
 		glm::radians(this->fov),
 		static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
 		this->nearPlane,
-		this->farPlane
-	);
+		this->farPlane);
 }
 
 void Game::initShaders()
 {
 	this->shaders.push_back(new Shader(this->GL_VERSION_MAJOR, this->GL_VERSION_MINOR,
-		(char*)"resources/shaders/vertex_core.glsl", (char*)"resources/shaders/fragment_core.glsl"));
+									   (char *)"resources/shaders/vertex_core.glsl", (char *)"resources/shaders/fragment_core.glsl"));
 }
 
 void Game::initTextures()
@@ -97,70 +99,45 @@ void Game::initTextures()
 	this->textures.push_back(new Texture("images/db_trans_specular.png", GL_TEXTURE_2D));
 
 	//TEXTURE 1
-	this->textures.push_back(new Texture("images/texture.jpg", GL_TEXTURE_2D));
-	this->textures.push_back(new Texture("images/texture_specular.jpg", GL_TEXTURE_2D));
+	this->textures.push_back(new Texture("images/tex.jpg", GL_TEXTURE_2D));
+	this->textures.push_back(new Texture("images/tex.jpg", GL_TEXTURE_2D));
 }
 
 void Game::initMaterials()
 {
-	this->materials.push_back(new Material(glm::vec3(0.4f), glm::vec3(1.f), glm::vec3(1.f), 
-		0, 1));
+	this->materials.push_back(new Material(glm::vec3(0.4f), glm::vec3(1.f), glm::vec3(2.f),
+										   0, 1));
+}
+
+void Game::initObjectModels()
+{
 }
 
 void Game::initModels()
 {
-	std::vector<Mesh*>meshes;
+	std::vector<Mesh *> meshes;
 
-	Pyramid testPym = Pyramid();
+
+
+	std::vector<Vertex> mesh = loadObjFile("models/bezier.obj");
 	meshes.push_back(
 		new Mesh(
-			&testPym,
-			glm::vec3(0.f),
-			glm::vec3(0.f),
-			glm::vec3(0.f),
-			glm::vec3(1.f)
-		)
-	);
-	Cube testQuad = Cube();
-
-	meshes.push_back(
-		new Mesh(
-			&testQuad,
-			glm::vec3(0.f, 1.f, 0.f),
-			glm::vec3(0.f),
-			glm::vec3(0.f),
-			glm::vec3(1.f)
-		)
-	);
+			mesh.data(),
+			mesh.size(),
+			NULL,
+			0,
+			glm::vec3(4.f, 0.f, 2.f)));
 
 	this->models.push_back(new Model(
 		glm::vec3(0.f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
-		meshes
-		)
-	);
+		meshes));
 
-	this->models.push_back(new Model(
-		glm::vec3(0.f, 1.f, 1.f),
-		this->materials[0],
-		this->textures[TEX_PUSHEEN],
-		this->textures[TEX_PUSHEEN_SPECULAR],
-		meshes
-		)
-	);
 
-	this->models.push_back(new Model(
-		glm::vec3(2.f, 0.f, 2.f),
-		this->materials[0],
-		this->textures[TEX_CONTAINER],
-		this->textures[TEX_CONTAINER_SPECULAR],
-		meshes
-		)
-	);
 
-	for (auto*& i : meshes)
+	for (auto *&i : meshes)
 		delete i;
 }
 
@@ -193,25 +170,22 @@ void Game::updateUniforms()
 		glm::radians(this->fov),
 		static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
 		this->nearPlane,
-		this->farPlane
-	);
+		this->farPlane);
 
 	this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 }
 
 //Constructors / Destructors
 Game::Game(
-	const char* title,
+	const char *title,
 	const int WINDOW_WIDTH, const int WINDOW_HEIGHT,
 	const int GL_VERSION_MAJOR, const int GL_VERSION_MINOR,
-	bool resizable
-)
-	:
-	WINDOW_WIDTH(WINDOW_WIDTH),
-	WINDOW_HEIGHT(WINDOW_HEIGHT),
-	GL_VERSION_MAJOR(GL_VERSION_MAJOR),
-	GL_VERSION_MINOR(GL_VERSION_MINOR),
-	camera(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f))
+	bool resizable)
+	: WINDOW_WIDTH(WINDOW_WIDTH),
+	  WINDOW_HEIGHT(WINDOW_HEIGHT),
+	  GL_VERSION_MAJOR(GL_VERSION_MAJOR),
+	  GL_VERSION_MINOR(GL_VERSION_MINOR),
+	  camera(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f))
 {
 	//Init variables
 	this->window = nullptr;
@@ -247,6 +221,7 @@ Game::Game(
 	this->initShaders();
 	this->initTextures();
 	this->initMaterials();
+	this->initObjectModels();
 	this->initModels();
 	this->initLights();
 	this->initUniforms();
@@ -259,14 +234,14 @@ Game::~Game()
 
 	for (size_t i = 0; i < this->shaders.size(); i++)
 		delete this->shaders[i];
-	
+
 	for (size_t i = 0; i < this->textures.size(); i++)
 		delete this->textures[i];
 
 	for (size_t i = 0; i < this->materials.size(); i++)
 		delete this->materials[i];
 
-	for (auto*& i : this->models)
+	for (auto *&i : this->models)
 		delete i;
 
 	for (size_t i = 0; i < this->lights.size(); i++)
@@ -363,14 +338,16 @@ void Game::update()
 	this->updateDt();
 	this->updateInput();
 
-	this->models[0]->rotate(glm::vec3(0.f, 1.f, 0.f));
-	this->models[1]->rotate(glm::vec3(0.f, 1.f, 0.f));
-	this->models[2]->rotate(glm::vec3(0.f, 1.f, 0.f));
+	// this->models[0]->rotate(glm::vec3(0.f, 1.f, 0.f));
+	// this->models[1]->rotate(glm::vec3(0.f, 1.f, 0.f));
+	// this->models[2]->rotate(glm::vec3(0.f, 1.f, 0.f));
+
+	// std::cout << "FPS: " << 1/this->dt << std::endl;
 }
 
 void Game::render()
 {
-	//UPDATE --- 
+	//UPDATE ---
 	//updateInput(window);
 
 	//DRAW ---
@@ -382,7 +359,7 @@ void Game::render()
 	this->updateUniforms();
 
 	//Render models
-	for (auto&i : this->models)
+	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
 	//End Draw
@@ -396,9 +373,29 @@ void Game::render()
 }
 
 //Static functions
-void Game::framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH)
+void Game::framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)
 {
 	glViewport(0, 0, fbW, fbH);
 };
 
+void Game::changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+    {
+        GLint polygonMode;
+        glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
 
+        switch (polygonMode)
+        {
+        case GL_LINE:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            break;
+        case GL_FILL:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            break;
+
+        default:
+            break;
+        }
+    }
+}

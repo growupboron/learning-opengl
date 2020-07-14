@@ -1,44 +1,42 @@
 #pragma once
 
-#include"mesh.h"
-#include"texture.h"
-#include"shader.h"
-#include"material.h"
+#include "mesh.h"
+#include "texture.h"
+#include "shader.h"
+#include "material.h"
 
 class Model
 {
 private:
-	Material * material;
-	Texture* overrideTextureDiffuse;
-	Texture* overrideTextureSpecular;
-	std::vector<Mesh*> meshes;
+	Material *material;
+	Texture *overrideTextureDiffuse;
+	Texture *overrideTextureSpecular;
+	std::vector<Mesh *> meshes;
 	glm::vec3 position;
 
 	void updateUniforms()
 	{
-
 	}
 
 public:
 	Model(
-		glm::vec3 position, 
-		Material* material,
-		Texture* orTexDif,
-		Texture* orTexSpec,
-		std::vector<Mesh*>& meshes
-		)
+		glm::vec3 position,
+		Material *material,
+		Texture *orTexDif,
+		Texture *orTexSpec,
+		std::vector<Mesh *> &meshes)
 	{
 		this->position = position;
 		this->material = material;
 		this->overrideTextureDiffuse = orTexDif;
 		this->overrideTextureSpecular = orTexSpec;
 
-		for (auto* i : meshes)
+		for (auto *i : meshes)
 		{
 			this->meshes.push_back(new Mesh(*i));
 		}
 
-		for (auto& i : this->meshes)
+		for (auto &i : this->meshes)
 		{
 			i->move(this->position);
 			i->setOrigin(this->position);
@@ -47,23 +45,22 @@ public:
 
 	~Model()
 	{
-		for (auto*& i : this->meshes)
+		for (auto *&i : this->meshes)
 			delete i;
 	}
 
 	//Functions
 	void rotate(const glm::vec3 rotation)
 	{
-		for (auto& i : this->meshes)
+		for (auto &i : this->meshes)
 			i->rotate(rotation);
 	}
 
 	void update()
 	{
-
 	}
 
-	void render(Shader* shader)
+	void render(Shader *shader)
 	{
 		//Update the uniforms
 		this->updateUniforms();
@@ -75,11 +72,13 @@ public:
 		shader->use();
 
 		//Activate texture
-		this->overrideTextureDiffuse->bind(0);
-		this->overrideTextureSpecular->bind(1);
 
 		//Draw
-		for (auto& i : this->meshes)
+		for (auto &i : this->meshes)
+		{
+			this->overrideTextureDiffuse->bind(0);
+			this->overrideTextureSpecular->bind(1);
 			i->render(shader);
+		}
 	}
 };

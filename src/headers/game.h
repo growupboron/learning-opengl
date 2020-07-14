@@ -2,6 +2,7 @@
 
 #include "libs.h"
 #include "camera.h"
+#include "objectLoader.h"
 
 //ZOOOOOOOOOOOM IN BEFORE RECORDING!
 
@@ -81,6 +82,7 @@ private:
 	void initShaders();
 	void initTextures();
 	void initMaterials();
+	void initObjectModels();
 	void initModels();
 	void initLights();
 	void initUniforms();
@@ -115,4 +117,5 @@ public:
 
 //Static functions
 	static void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH);
+	static void changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods);
 };
