@@ -1,13 +1,5 @@
 #pragma once
 
-#include <iostream>
-
-
-
-#include <fstream>
-#include <string>
-#include <vector>
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -20,14 +12,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-
-#include <SOIL2.h>
-
-#include "shader.h"
-#include "texture.h"
-#include "material.h"
-#include "vertex.h"
-#include "primitives.h"
-#include "mesh.h"
-#include "camera.h"
-#include "model.h"
+struct Vertex
+{
+	glm::vec3 position;
+	glm::vec3 color;
+	glm::vec2 texcoord;
+	glm::vec3 normal;
+};
