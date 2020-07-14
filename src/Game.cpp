@@ -148,13 +148,46 @@ void Game::initMaterials()
                      1));
 }
 
-void Game::initMeshes()
-{
-    Pyramid tempQuad = Pyramid();
-    this->meshes.push_back(new Mesh(&tempQuad));
+void Game::initModels()
 
-    Triangle tempTria = Triangle();
-    this->meshes.push_back(new Mesh(&tempTria));
+{
+
+    std::vector<Mesh *> meshes;
+
+    Quad tempQuad = Quad();
+    meshes.push_back(new Mesh(&tempQuad, glm::vec3(1.f, 0.f, 0.f),
+                              glm::vec3(0.f),
+                              glm::vec3(0.f),
+                              glm::vec3(1.f)));
+    Pyramid tempPym = Pyramid();
+    meshes.push_back(new Mesh(&tempPym, glm::vec3(0.f, 0.f, 0.f),
+                              glm::vec3(0.f),
+                              glm::vec3(0.f),
+                              glm::vec3(1.f)));
+
+    this->models.push_back(new Model(
+        glm::vec3(0.f),
+        this->materials[MAT_1],
+        this->textures[TEX_CONTAINER],
+        this->textures[TEX_CONTAINER_SPECULAR],
+        meshes));
+    this->models.push_back(new Model(
+        glm::vec3(0.f, 1.f, 1.f),
+        this->materials[MAT_1],
+        this->textures[TEX_PUSHEEN],
+        this->textures[TEX_PUSHEEN_SPECULAR],
+        meshes));
+    this->models.push_back(new Model(
+        glm::vec3(2.f, 0.f, 2.f),
+        this->materials[MAT_1],
+        this->textures[TEX_CONTAINER],
+        this->textures[TEX_CONTAINER_SPECULAR],
+        meshes));
+
+    for (auto *&i : meshes)
+    {
+        delete i;
+    }
 }
 
 void Game::initLights()
@@ -176,6 +209,7 @@ void Game::initUniforms()
 
 void Game::updateUniforms()
 {
+    this->shaders[SHADER_CORE_PROGRAM]->use();
 
     // send uniforms (variables from cpu to gpu)
     this->shaders[SHADER_CORE_PROGRAM]->set1i(0, "texture0");
@@ -196,6 +230,7 @@ void Game::updateUniforms()
         this->farPlane);
 
     this->shaders[SHADER_CORE_PROGRAM]->setMat4v(this->ProjectionMatrix, "ProjectionMatrix", GL_FALSE);
+    this->shaders[SHADER_CORE_PROGRAM]->unuse();
 }
 // Constructors / Destructors
 Game::Game(const char *title,
@@ -245,7 +280,7 @@ Game::Game(const char *title,
     this->initShaders();
     this->initTextures();
     this->initMaterials();
-    this->initMeshes();
+    this->initModels();
     this->initLights();
     this->initUniforms();
 }
@@ -264,9 +299,8 @@ Game::~Game()
 
     for (size_t i = 0; i < this->materials.size(); i++)
         delete this->materials[i];
-
-    for (size_t i = 0; i < this->meshes.size(); i++)
-        delete this->meshes[i];
+    for (auto *&i : this->models)
+        delete i;
     for (size_t i = 0; i < this->lights.size(); i++)
         delete this->lights[i];
 }
@@ -289,13 +323,15 @@ void Game::update()
     glfwPollEvents();
     this->updateDeltaTime();
 
-    this->oldUpdateInput(this->window, *this->meshes[MESH_QUAD]);
     this->updateKeyboardInput();
     this->updateMouseInput();
 
     this->camera.updateInput(this->dt, -1, this->mouseOffsetX, this->mouseOffsetY);
 
-    this->meshes[MESH_QUAD]->rotate(glm::vec3(0.f, 1.f, 0.f));
+    this->models[0]->rotate(glm::vec3(0.f, 1.f, 0.f));
+    this->models[1]->rotate(glm::vec3(0.f, 1.f, 0.f));
+    this->models[2]->rotate(glm::vec3(0.f, 1.f, 0.f));
+
     std::cout << "FPS : " << 1 / this->dt << "\n";
     // Update Inputs
 }
@@ -310,16 +346,22 @@ void Game::render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // update uniforms
-    this->shaders[SHADER_CORE_PROGRAM]->use();
+
     this->updateUniforms();
-    this->materials[MAT_1]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
-    // select program
+    // this->materials[MAT_1]->sendToShader(*this->shaders[SHADER_CORE_PROGRAM]);
+    // // select program
 
-    // activate texture
-    this->textures[TEX_CONTAINER]->bind(0);
-    this->textures[TEX_CONTAINER_SPECULAR]->bind(1);
+    // // activate texture
+    // this->textures[TEX_CONTAINER]->bind(0);
+    // this->textures[TEX_CONTAINER_SPECULAR]->bind(1);
 
-    this->meshes[MESH_QUAD]->render(this->shaders[SHADER_CORE_PROGRAM]);
+    // this->meshes[MESH_QUAD]->render(this->shaders[SHADER_CORE_PROGRAM]);
+
+    // Render models
+    for (auto &i : models)
+    {
+        i->render(this->shaders[SHADER_CORE_PROGRAM]);
+    }
 
     // ENDDRAW
     glfwSwapBuffers(window);
@@ -327,7 +369,7 @@ void Game::render()
     // FORCE EXECUTION OF GL COMMANDS IN FINITE TIME
     glFlush();
 
-    // reset all bindings to free up space
+    // reset all bindings to free up space (redundant)
     glBindVertexArray(0);
     this->shaders[SHADER_CORE_PROGRAM]->unuse();
     this->textures[TEX_PUSHEEN]->unbind();
@@ -361,7 +403,12 @@ void Game::updateKeyboardInput()
     {
         this->camera.move(this->dt, FORWARD);
     }
-
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        exit(0);
+    }
 }
 
 void Game::updateMouseInput()
@@ -462,12 +509,5 @@ void Game::oldUpdateInput(GLFWwindow *window, Mesh &mesh)
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
     {
         mesh.move(glm::vec3(0.f, 0.f, +0.05f));
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        exit(0);
     }
 }

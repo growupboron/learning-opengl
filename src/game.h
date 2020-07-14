@@ -80,11 +80,12 @@ private:
     // Material
     std::vector<Material *> materials;
 
-    // Meshes
-    std::vector<Mesh *> meshes;
-
     // Lights (positions)
     std::vector<glm::vec3 *> lights;
+
+    // Models
+    std::vector<Model*> models;
+
 
     // private functions
     void initGLFW();
@@ -95,7 +96,7 @@ private:
     void initShaders();
     void initTextures();
     void initMaterials();
-    void initMeshes();
+    void initModels();
     void initLights();
     void initUniforms();
 
