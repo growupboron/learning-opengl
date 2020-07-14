@@ -121,7 +121,7 @@ void Game::initModels()
 			glm::vec3(1.f)
 		)
 	);
-	Quad testQuad = Quad();
+	Cube testQuad = Cube();
 
 	meshes.push_back(
 		new Mesh(
