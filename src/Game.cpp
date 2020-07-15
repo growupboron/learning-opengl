@@ -84,6 +84,7 @@ void Game::initMatrices()
 		static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
 		this->nearPlane,
 		this->farPlane);
+	this->ProjectionMatrix = glm::ortho(0.f, 800.f, 600.f, 0.0f, this->nearPlane, this->farPlane);
 }
 
 void Game::initShaders()
@@ -117,24 +118,38 @@ void Game::initModels()
 {
 	std::vector<Mesh *> meshes;
 
+	// std::vector<Vertex> mesh = loadObjFile("models/torus.obj");
+	// meshes.push_back(
+	// 	new Mesh(
+	// 		mesh.data(),
+	// 		mesh.size(),
+	// 		NULL,
+	// 		0));
 
-
-	std::vector<Vertex> mesh = loadObjFile("models/torus.obj");
-	meshes.push_back(
-		new Mesh(
-			mesh.data(),
-			mesh.size(),
-			NULL,
-			0));
+	// this->models.push_back(new Model(
+	// 	glm::vec3(4.f, 0.f, 4.f),
+	// 	this->materials[0],
+	// 	this->textures[TEX_CONTAINER],
+	// 	this->textures[TEX_CONTAINER_SPECULAR],
+	// 	meshes));
 
 	this->models.push_back(new Model(
-		glm::vec3(4.f, 0.f, 4.f),
+		glm::vec3(0.f, -8.f, 0.f),
+		glm::vec3(90.f, 0.f, 0.f),
+		glm::vec3(0.02f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
-		meshes));
+		"models/torus.obj"));
 
-
+	this->models.push_back(new Model(
+		glm::vec3(0.f, -4.f, 0.f),
+		glm::vec3(0.f, 0.f, 0.f),
+		glm::vec3(0.5f),
+		this->materials[0],
+		this->textures[TEX_CONTAINER],
+		this->textures[TEX_CONTAINER_SPECULAR],
+		"models/bezier.obj"));
 
 	for (auto *&i : meshes)
 		delete i;
@@ -161,6 +176,7 @@ void Game::updateUniforms()
 
 	this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ViewMatrix, "ViewMatrix");
 	this->shaders[SHADER_CORE_PROGRAM]->setVec3f(this->camera.getPosition(), "cameraPos");
+	this->shaders[SHADER_CORE_PROGRAM]->setVec3f(*this->lights[0], "lightPos0");
 
 	//Update framebuffer size and projection matrix
 	glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
@@ -170,7 +186,10 @@ void Game::updateUniforms()
 		static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
 		this->nearPlane,
 		this->farPlane);
-
+	this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth/200), static_cast<float>(this->framebufferWidth/200),
+										static_cast<float>(this->framebufferHeight/200), static_cast<float>(-this->framebufferHeight/200),
+										-1000.0f, 1000.0f);
+	;
 	this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 }
 
@@ -285,6 +304,11 @@ void Game::updateMouseInput()
 	//Set last X and Y
 	this->lastMouseX = this->mouseX;
 	this->lastMouseY = this->mouseY;
+
+	if (glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+	{
+		*this->lights[0] = this->camera.getPosition();
+	}
 }
 
 void Game::updateKeyboardInput()
@@ -298,11 +322,11 @@ void Game::updateKeyboardInput()
 	//Camera
 	if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, FORWARD);
+		this->camera.move(this->dt, DOWN);
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, BACKWARD);
+		this->camera.move(this->dt, UP);
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS)
 	{
@@ -314,7 +338,7 @@ void Game::updateKeyboardInput()
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_C) == GLFW_PRESS)
 	{
-		this->models[0]->rotate(glm::vec3(0.f,1.f,0.f));
+		this->models[0]->rotate(glm::vec3(90.f, 0.f, 0.f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
@@ -379,22 +403,22 @@ void Game::framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)
 
 void Game::changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
-    {
-        GLint polygonMode;
-        glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
+	if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+	{
+		GLint polygonMode;
+		glGetIntegerv(GL_POLYGON_MODE, &polygonMode);
 
-        switch (polygonMode)
-        {
-        case GL_LINE:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            break;
-        case GL_FILL:
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            break;
+		switch (polygonMode)
+		{
+		case GL_LINE:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			break;
+		case GL_FILL:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			break;
 
-        default:
-            break;
-        }
-    }
+		default:
+			break;
+		}
+	}
 }

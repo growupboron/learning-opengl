@@ -11,7 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-enum direction {FORWARD = 0, BACKWARD, LEFT, RIGHT};
+enum direction {FORWARD = 0, BACKWARD, LEFT, RIGHT, UP, DOWN};
 
 class Camera
 {
@@ -97,6 +97,12 @@ public:
 		case RIGHT:
 			this->position += this->right * this->movementSpeed * dt;
 			break;
+		case UP:
+			this->position += this->up * this->movementSpeed * dt;
+			break;
+		case DOWN:
+			this->position -= this->up * this->movementSpeed * dt;
+			break;						
 		default:
 			break;
 		}

@@ -4,7 +4,7 @@
 #include "texture.h"
 #include "shader.h"
 #include "material.h"
-
+#include "objectLoader.h"
 class Model
 {
 private:
@@ -43,6 +43,38 @@ public:
 		}
 	}
 
+	Model(
+		glm::vec3 position,
+		glm::vec3 rotation,
+		glm::vec3 scale,
+		Material *material,
+		Texture *orTexDif,
+		Texture *orTexSpec,
+		const char *objFile)
+	{
+		this->position = position;
+		this->material = material;
+		this->overrideTextureDiffuse = orTexDif;
+		this->overrideTextureSpecular = orTexSpec;
+
+		std::vector<Vertex> mesh = loadObjFile(objFile);
+		this->meshes.push_back(
+			new Mesh(
+				mesh.data(),
+				mesh.size(),
+				NULL,
+				0, glm::vec3(0.f)));
+
+		for (auto &i : this->meshes)
+		{
+			i->move(this->position);
+			i->setOrigin(this->position);
+		}
+
+		this->rotate(rotation);
+		this->scaleUp(scale);
+	}
+
 	~Model()
 	{
 		for (auto *&i : this->meshes)
@@ -54,6 +86,18 @@ public:
 	{
 		for (auto &i : this->meshes)
 			i->rotate(rotation);
+	}
+
+	void move(const glm::vec3 direction)
+	{
+		for (auto &i : this->meshes)
+			i->move(direction);
+	}
+
+	void scaleUp(const glm::vec3 scale)
+	{
+		for (auto &i : this->meshes)
+			i->scaleUp(scale);
 	}
 
 	void update()
