@@ -24,3 +24,4 @@
 #include "material.h"
 #include "mesh.h"
 #include "model.h"
+#include "config.h"

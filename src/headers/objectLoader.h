@@ -135,9 +135,7 @@ static std::vector<Vertex> loadObjFile(const char *filename)
         vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
     }
     std::cout << "Nr of vertices" << vertices.size() << std::endl;
-    std::cout << "Nr of positions" << vertexPositions.size() << std::endl;
-    std::cout << "Nr of texcoords" << vertexTexCoords.size() << std::endl;
-    std::cout << "Nr of normals" << vertexNormals.size() << std::endl;
+    std::cout << "Object file \"" << filename << "\" loaded !" << std::endl;
     return vertices;
 }
 

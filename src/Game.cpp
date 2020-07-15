@@ -1,5 +1,11 @@
 #include "headers/game.h"
 
+bool PROJECTION_MODE = 0; // ortho = 1, perspective = 0
+int OPENGL_MAJOR = 4;
+int OPENGL_MINOR = 4;
+
+
+
 //Private functions
 void Game::initGLFW()
 {
@@ -79,12 +85,22 @@ void Game::initMatrices()
 	this->ViewMatrix = glm::lookAt(this->camPosition, this->camPosition + this->camFront, this->worldUp);
 
 	this->ProjectionMatrix = glm::mat4(1.f);
-	this->ProjectionMatrix = glm::perspective(
-		glm::radians(this->fov),
-		static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
-		this->nearPlane,
-		this->farPlane);
-	this->ProjectionMatrix = glm::ortho(0.f, 800.f, 600.f, 0.0f, this->nearPlane, this->farPlane);
+	if (PROJECTION_MODE)
+	{
+		this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth / 200),
+											static_cast<float>(this->framebufferWidth / 200),
+											static_cast<float>(-this->framebufferHeight / 200),
+											static_cast<float>(this->framebufferHeight / 200),
+											-1000.0f, 1000.0f);
+	}
+	else
+	{
+		this->ProjectionMatrix = glm::perspective(
+			glm::radians(this->fov),
+			static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
+			this->nearPlane,
+			this->farPlane);
+	}
 }
 
 void Game::initShaders()
@@ -134,7 +150,7 @@ void Game::initModels()
 	// 	meshes));
 
 	this->models.push_back(new Model(
-		glm::vec3(0.f, -8.f, 0.f),
+		glm::vec3(0.f, 0.f, 0.f),
 		glm::vec3(90.f, 0.f, 0.f),
 		glm::vec3(0.02f),
 		this->materials[0],
@@ -181,15 +197,23 @@ void Game::updateUniforms()
 	//Update framebuffer size and projection matrix
 	glfwGetFramebufferSize(this->window, &this->framebufferWidth, &this->framebufferHeight);
 
-	this->ProjectionMatrix = glm::perspective(
-		glm::radians(this->fov),
-		static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
-		this->nearPlane,
-		this->farPlane);
-	this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth/200), static_cast<float>(this->framebufferWidth/200),
-										static_cast<float>(this->framebufferHeight/200), static_cast<float>(-this->framebufferHeight/200),
-										-1000.0f, 1000.0f);
-	;
+	if (PROJECTION_MODE)
+	{
+		this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth / 200),
+											static_cast<float>(this->framebufferWidth / 200),
+											static_cast<float>(-this->framebufferHeight / 200),
+											static_cast<float>(this->framebufferHeight / 200),
+											-1000.0f, 1000.0f);
+	}
+	else
+	{
+		this->ProjectionMatrix = glm::perspective(
+			glm::radians(this->fov),
+			static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
+			this->nearPlane,
+			this->farPlane);
+	}
+
 	this->shaders[SHADER_CORE_PROGRAM]->setMat4fv(this->ProjectionMatrix, "ProjectionMatrix");
 }
 
@@ -322,11 +346,11 @@ void Game::updateKeyboardInput()
 	//Camera
 	if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, DOWN);
+		this->camera.move(this->dt, FORWARD);
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, UP);
+		this->camera.move(this->dt, BACKWARD);
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS)
 	{
@@ -335,6 +359,14 @@ void Game::updateKeyboardInput()
 	if (glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		this->camera.move(this->dt, RIGHT);
+	}
+	if (glfwGetKey(this->window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		this->camera.move(this->dt, UP);
+	}
+	if (glfwGetKey(this->window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		this->camera.move(this->dt, DOWN);
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_C) == GLFW_PRESS)
 	{
@@ -420,5 +452,12 @@ void Game::changeRenderMode(GLFWwindow *window, int key, int scancode, int actio
 		default:
 			break;
 		}
+	}
+
+		if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS)
+	{
+		PROJECTION_MODE = !PROJECTION_MODE;
+
+
 	}
 }
