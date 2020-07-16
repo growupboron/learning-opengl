@@ -44,7 +44,7 @@
         "args": [
             "-g",
             "--std=c++11",
-            "hello.cpp",
+            "src/*.cpp",
             "-o",
             "build/program.exe",
             "-LwinLibs/include",
@@ -54,7 +54,8 @@
             "-lglu32",
             "-lgdi32",
             "-IwinLibs/include",
-            "-Lc:winLibs/libs"
+            "-Lc:winLibs/libs",
+            "-lsoil2",
             
 
         ],

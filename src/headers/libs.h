@@ -5,8 +5,7 @@
 #include<string>
 #include<vector>
 #include <GL/glew.h>
-#include <gl/GL.h>
-#include 
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/vec2.hpp>
