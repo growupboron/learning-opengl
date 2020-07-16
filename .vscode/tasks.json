@@ -1,40 +1,75 @@
 {
     "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "shell",
-            "label": "Build C++ File",
-            "command": "/usr/bin/g++",
-            "args": [
-                "-g",
-                "--std=c++11",
-                "src/*.cpp",
-                "-o",
-                "build/program.exec",
-                "-lGL",
-                "-lGLU",
-                "-lglfw3",
-                "-lX11",
-                "-lXxf86vm",
-                "-lXrandr",
-                "-lpthread",
-                "-lXi",
-                "-ldl",
-                "-lXinerama",
-                "-lXcursor",
-                "-lGLEW",
-                "-lsoil2",
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+    "label" : "Build Project using G++",
+    
+    "linux": {
+        "type": "shell",
+        "command": "/usr/bin/g++",
+        "args": [
+            "-g",
+            "--std=c++11",
+            "src/*.cpp",
+            "-o",
+            "build/program.exec",
+            "-lGL",
+            "-lGLU",
+            "-lglfw3",
+            "-lX11",
+            "-lXxf86vm",
+            "-lXrandr",
+            "-lpthread",
+            "-lXi",
+            "-ldl",
+            "-lXinerama",
+            "-lXcursor",
+            "-lGLEW",
+            "-lsoil2",
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": [
+            "$gcc"
+        ],
+        "group": {
+            "kind": "build",
+            "isDefault": true
         }
-    ]
+    },
+    "windows": {
+        "type": "shell",
+        
+        "command": "g++",
+        "args": [
+            "-g",
+            "--std=c++11",
+            "hello.cpp",
+            "-o",
+            "build/program.exe",
+            "-LwinLibs/include",
+            "-lglew32",
+            "-lglfw3",
+            "-lopengl32",
+            "-lglu32",
+            "-lgdi32",
+            "-IwinLibs/include",
+            "-Lc:winLibs/libs"
+            
+
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}"
+        },
+        "problemMatcher": [
+            "$gcc"
+        ],
+        "group": {
+            "kind": "build",
+            "isDefault": true
+        }
+    },
+    "group": {
+        "kind": "build",
+        "isDefault": true
+    }
 }
