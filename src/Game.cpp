@@ -112,12 +112,12 @@ void Game::initShaders()
 void Game::initTextures()
 {
 	//TEXTURE 0
-	this->textures.push_back(new Texture("images/db_trans.png", GL_TEXTURE_2D));
-	this->textures.push_back(new Texture("images/db_trans_specular.png", GL_TEXTURE_2D));
+	this->textures.push_back(new Texture("resources/images/db_trans.png", GL_TEXTURE_2D));
+	this->textures.push_back(new Texture("resources/images/db_trans_specular.png", GL_TEXTURE_2D));
 
 	//TEXTURE 1
-	this->textures.push_back(new Texture("images/tex.jpg", GL_TEXTURE_2D));
-	this->textures.push_back(new Texture("images/tex.jpg", GL_TEXTURE_2D));
+	this->textures.push_back(new Texture("resources/images/tex.jpg", GL_TEXTURE_2D));
+	this->textures.push_back(new Texture("resources/images/tex.jpg", GL_TEXTURE_2D));
 }
 
 void Game::initMaterials()
@@ -134,7 +134,7 @@ void Game::initModels()
 {
 	std::vector<Mesh *> meshes;
 
-	// std::vector<Vertex> mesh = loadObjFile("models/torus.obj");
+	// std::vector<Vertex> mesh = loadObjFile("resources/models/torus.obj");
 	// meshes.push_back(
 	// 	new Mesh(
 	// 		mesh.data(),
@@ -156,7 +156,7 @@ void Game::initModels()
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
-		"models/torus.obj"));
+		"resources/models/torus.obj"));
 
 	this->models.push_back(new Model(
 		glm::vec3(0.f, -4.f, 0.f),
@@ -165,7 +165,7 @@ void Game::initModels()
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
-		"models/bezier.obj"));
+		"resources/models/bezier.obj"));
 
 	for (auto *&i : meshes)
 		delete i;

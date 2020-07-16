@@ -3,73 +3,92 @@
     "label" : "Build Project using G++",
     
     
-    "linux": {
-        "type": "shell",
-        "command": "/usr/bin/g++",
-        "args": [
-            "-g",
-            "--std=c++11",
-            "src/*.cpp",
-            "-o",
-            "build/program.exec",
-            "-lGL",
-            "-lGLU",
-            "-lglfw3",
-            "-lX11",
-            "-lXxf86vm",
-            "-lXrandr",
-            "-lpthread",
-            "-lXi",
-            "-ldl",
-            "-lXinerama",
-            "-lXcursor",
-            "-lGLEW",
-            "-lsoil2",
-        ],
-        "options": {
-            "cwd": "${workspaceFolder}"
+    "tasks": [
+        {
+            "label": "Build Project (Debug)",
+            "type": "shell",
+            "linux": {
+                "type": "shell",
+                "command": "/usr/bin/g++",
+                "args": [
+                    "-g",
+                    "--std=c++11",
+                    "src/*.cpp",
+                    "-o",
+                    "build/linux/program.exec",
+                    "-lGL",
+                    "-lGLU",
+                    "-lglfw3",
+                    "-lX11",
+                    "-lXxf86vm",
+                    "-lXrandr",
+                    "-lpthread",
+                    "-lXi",
+                    "-ldl",
+                    "-lXinerama",
+                    "-lXcursor",
+                    "-lGLEW",
+                    "-lsoil2"
+                ],
+                "options": {
+                    "cwd": "${workspaceFolder}"
+                },
+                "problemMatcher": [
+                    "$gcc"
+                ],
+                "group": {
+                    "kind": "build",
+                    "isDefault": true
+                }
+            },
+            "windows": {
+                "type": "shell",
+                "command": "g++",
+                "args": [
+                    "-g",
+                    "--std=c++11",
+                    "src/*.cpp",
+                    "-o",
+                    "build/windows/program.exe",
+                    "-LwinLibs/include",
+                    "-lglew32",
+                    "-lglfw3",
+                    "-lopengl32",
+                    "-lglu32",
+                    "-lgdi32",
+                    "-IwinLibs/include",
+                    "-Lc:winLibs/libs",
+                    "-lsoil2"
+                ],
+                "options": {
+                    "cwd": "${workspaceFolder}"
+                },
+                "problemMatcher": [
+                    "$gcc"
+                ],
+                "group": {
+                    "kind": "build",
+                    "isDefault": true
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
-        "problemMatcher": [
-            "$gcc"
-        ],
-        "group": {
-            "kind": "build",
-            "isDefault": true
+        {
+            "label": "Build Project (Release)",
+            "type": "shell",
+            "command": "cp",
+            "args": [
+                "-r",
+                "resources",
+                "build/windows"
+            ],
+            "problemMatcher": []
         }
-    },
-    "windows": {
-        "type": "shell",
-        
-        "command": "g++",
-        "args": [
-            "-g",
-            "--std=c++11",
-            "src/*.cpp",
-            "-o",
-            "build/program.exe",
-            "-LwinLibs/include",
-            "-lglew32",
-            "-lglfw3",
-            "-lopengl32",
-            "-lglu32",
-            "-lgdi32",
-            "-IwinLibs/include",
-            "-Lc:winLibs/libs",
-            "-lsoil2",
-            
+    ],
 
-        ],
-        "options": {
-            "cwd": "${workspaceFolder}"
-        },
-        "problemMatcher": [
-            "$gcc"
-        ],
-        "group": {
-            "kind": "build",
-            "isDefault": true
-        }
-    },
     "group": {
         "kind": "build",
         "isDefault": true
