@@ -2,6 +2,7 @@
     "version": "2.0.0",
     "label" : "Build Project using G++",
     
+    
     "linux": {
         "type": "shell",
         "command": "/usr/bin/g++",
