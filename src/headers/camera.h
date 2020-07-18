@@ -48,7 +48,7 @@ public:
 		this->ViewMatrix = glm::mat4(1.f);
 
 		this->movementSpeed = 3.f;
-		this->sensitivity = 5.f;
+		this->sensitivity = 10.f;
 
 		this->worldUp = worldUp;
 		this->position = position;

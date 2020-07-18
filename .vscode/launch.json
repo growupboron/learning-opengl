@@ -21,10 +21,10 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "g++",
+            "preLaunchTask": "Build Project (Debug)",
             "windows": {
                 "miDebuggerPath": "C:\\Program Files\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin\\gdb.exe",
-                "program": "${workspaceFolder}/build/program.exe"
+                "program": "${workspaceFolder}/build/windows/program.exe"
             },
             "linux": {
                 "miDebuggerPath": "/usr/bin/gdb",
