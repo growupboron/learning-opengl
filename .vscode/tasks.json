@@ -16,6 +16,9 @@
                     "src/*.cpp",
                     "-o",
                     "build/linux/program.exec",
+                    // "-LlinuxLibs/libs",
+                    "-Lc:linuxLibs/libs",
+                    "-IlinuxLibs/include",
                     "-lGL",
                     "-lGLU",
                     "-lglfw3",
@@ -28,7 +31,7 @@
                     "-lXinerama",
                     "-lXcursor",
                     "-lGLEW",
-                    "-lsoil2"
+                    "-l:libsoil2.a"
                 ],
                 "options": {
                     "cwd": "${workspaceFolder}"

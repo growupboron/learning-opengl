@@ -28,7 +28,7 @@
             },
             "linux": {
                 "miDebuggerPath": "/usr/bin/gdb",
-                "program": "${workspaceFolder}/build/program.exec"
+                "program": "${workspaceFolder}/build/linux/program.exec"
             }
             
         }
