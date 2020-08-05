@@ -6,7 +6,7 @@ int main()
 		1600, 900,
 		4, 4,
 		true);
-
+	// game.saveDepthMap();
 	//MAIN LOOP
 	while (!game.getWindowShouldClose())
 	{

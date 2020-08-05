@@ -27,24 +27,33 @@ vec3 calculateAmbient(Material material)
 	return material.ambient;
 }
 
-vec3 calculateDiffuse(Material material, vec3 vs_position, vec3 vs_normal, vec3 lightPos0)
+vec3 calculateDiffuse(Material material,vec3 vs_position,vec3 vs_normal,vec3 lightPos0)
 {
-	vec3 posToLightDirVec = normalize(lightPos0 - vs_position);
-	float diffuse = clamp(dot(posToLightDirVec, vs_normal), 0, 1);
-	vec3 diffuseFinal = material.diffuse * diffuse;
-
+	vec3 posToLightDirVec=normalize(lightPos0-vs_position);
+	float diffuse=clamp(dot(posToLightDirVec,vs_normal),0,1);
+	vec3 diffuseFinal=material.diffuse*diffuse;
+	
 	return diffuseFinal;
 }
 
-vec3 calculateSpecular(Material material, vec3 vs_position, vec3 vs_normal, vec3 lightPos0, vec3 cameraPos)
+vec3 calculateSpecular(Material material,vec3 vs_position,vec3 vs_normal,vec3 lightPos0,vec3 cameraPos)
 {
-	vec3 lightToPosDirVec = normalize(vs_position - lightPos0);
-	vec3 reflectDirVec = normalize(reflect(lightToPosDirVec, normalize(vs_normal)));
-	vec3 posToViewDirVec = normalize(cameraPos - vs_position);
-	float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), 35);
-	vec3 specularFinal = material.specular * specularConstant * texture(material.specularTex, vs_texcoord).rgb;
-
+	vec3 lightToPosDirVec=normalize(vs_position-lightPos0);
+	vec3 reflectDirVec=normalize(reflect(lightToPosDirVec,normalize(vs_normal)));
+	vec3 posToViewDirVec=normalize(cameraPos-vs_position);
+	float specularConstant=pow(max(dot(posToViewDirVec,reflectDirVec),0),35);
+	vec3 specularFinal=material.specular*specularConstant*texture(material.specularTex,vs_texcoord).rgb;
+	
 	return specularFinal;
+}
+
+float near=.1;
+float far=100.;
+
+float LinearizeDepth(float depth)
+{
+	float z=depth*2.-1.;// back to NDC
+	return(2.*near*far)/(far+near-z*(far-near));
 }
 
 void main()
@@ -53,18 +62,19 @@ void main()
 	//fs_color = texture(texture0, vs_texcoord) * texture(texture1, vs_texcoord) * vec4(vs_color, 1.f);
 	
 	//Ambient light
-	vec3 ambientFinal = calculateAmbient(material);
-
+	vec3 ambientFinal=calculateAmbient(material);
+	
 	//Diffuse light
-	vec3 diffuseFinal = calculateDiffuse(material, vs_position, vs_normal, lightPos0);
-
+	vec3 diffuseFinal=calculateDiffuse(material,vs_position,vs_normal,lightPos0);
+	
 	//Specular light
-	vec3 specularFinal = calculateSpecular(material, vs_position, vs_normal, lightPos0, cameraPos);
-
+	vec3 specularFinal=calculateSpecular(material,vs_position,vs_normal,lightPos0,cameraPos);
+	
 	//Attenuation
-
+	
 	//Final light
-	fs_color = 
-	texture(material.diffuseTex, vs_texcoord)
-	* (vec4(ambientFinal, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f));
+	fs_color=
+	(vec4(ambientFinal,1.f)+vec4(diffuseFinal,1.f)+vec4(specularFinal,1.f));
+	// float depth = LinearizeDepth(gl_FragCoord.z) / far;
+	// fs_color = vec4(depth, 0, 0, 1.0);
 }

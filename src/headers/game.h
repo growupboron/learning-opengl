@@ -70,6 +70,10 @@ private:
 	//Lights
 	std::vector<glm::vec3*> lights;
 
+
+	GLfloat* smZbuf;   // depth buffer
+	float iv1, iv2, iv3;
+
 //Private functions
 	void initGLFW();
 	void initWindow(
@@ -88,6 +92,8 @@ private:
 	void initUniforms();
 
 	void updateUniforms();
+
+
 
 //Static variables
 
@@ -114,7 +120,7 @@ public:
 	void updateInput();
 	void update();
 	void render();
-
+	void saveDepthMap();
 //Static functions
 	static void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH);
 	static void changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods);

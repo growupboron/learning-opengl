@@ -4,8 +4,6 @@ bool PROJECTION_MODE = 0; // ortho = 1, perspective = 0
 int OPENGL_MAJOR = 4;
 int OPENGL_MINOR = 4;
 
-
-
 //Private functions
 void Game::initGLFW()
 {
@@ -64,6 +62,7 @@ void Game::initGLEW()
 void Game::initOpenGLOptions()
 {
 	glEnable(GL_DEPTH_TEST);
+	// glDepthMask(GL_FALSE);
 
 	// glEnable(GL_CULL_FACE);
 	// glCullFace(GL_BACK);
@@ -150,22 +149,22 @@ void Game::initModels()
 	// 	meshes));
 
 	this->models.push_back(new Model(
-		glm::vec3(0.f, 0.f, 0.f),
+		glm::vec3(0.f, 0.f, -2.f),
 		glm::vec3(90.f, 0.f, 0.f),
 		glm::vec3(0.02f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
-		"resources/models/torus.obj"));
+		"resources/models/surface2.obj"));
 
-	this->models.push_back(new Model(
-		glm::vec3(0.f, -4.f, 0.f),
-		glm::vec3(0.f, 0.f, 0.f),
-		glm::vec3(0.5f),
-		this->materials[0],
-		this->textures[TEX_CONTAINER],
-		this->textures[TEX_CONTAINER_SPECULAR],
-		"resources/models/bezier.obj"));
+	// this->models.push_back(new Model(
+	// 	glm::vec3(0.f, -4.f, 0.f),
+	// 	glm::vec3(0.f, 0.f, 0.f),
+	// 	glm::vec3(0.5f),
+	// 	this->materials[0],
+	// 	this->textures[TEX_CONTAINER],
+	// 	this->textures[TEX_CONTAINER_SPECULAR],
+	// 	"resources/models/torus.obj"));
 
 	for (auto *&i : meshes)
 		delete i;
@@ -227,7 +226,7 @@ Game::Game(
 	  WINDOW_HEIGHT(WINDOW_HEIGHT),
 	  GL_VERSION_MAJOR(GL_VERSION_MAJOR),
 	  GL_VERSION_MINOR(GL_VERSION_MINOR),
-	  camera(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f))
+	  camera(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f))
 {
 	//Init variables
 	this->window = nullptr;
@@ -253,6 +252,12 @@ Game::Game(
 	this->mouseOffsetX = 0.0;
 	this->mouseOffsetY = 0.0;
 	this->firstMouse = true;
+
+	this->iv1 = 2 * (this->nearPlane) * (this->farPlane);
+	this->iv2 = this->nearPlane + this->farPlane;
+	this->iv3 = this->farPlane - this->nearPlane;
+
+	this->smZbuf = (GLfloat *)malloc(WINDOW_WIDTH * WINDOW_HEIGHT);
 
 	this->initGLFW();
 	this->initWindow(title, resizable);
@@ -332,6 +337,10 @@ void Game::updateMouseInput()
 	if (glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
 	{
 		*this->lights[0] = this->camera.getPosition();
+	}
+	if (glfwGetMouseButton(this->window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+	{
+		this->saveDepthMap();
 	}
 }
 
@@ -417,6 +426,77 @@ void Game::render()
 	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
+	GLubyte pixels[4 * WINDOW_WIDTH * WINDOW_HEIGHT];
+	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, pixels);
+
+	// if (this->smZbuf)
+	// {
+	// 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->smZbuf);
+	// }
+
+	std::cout << (float)pixels[0] << std::endl;
+
+	// asynchronous load depth map to PBO
+	// glReadPixels(0,0,WINDOW_WIDTH,WINDOW_HEIGHT,GL_DEPTH_COMPONENT,GL_FLOAT,nullptr);
+
+	// // read the depth map
+	// glGetBufferSubData(GL_PIXEL_PACK_BUFFER, 0, (GLsizeiptr) WINDOW_WIDTH*WINDOW_HEIGHT*sizeof(float), this->smZbuf);
+
+	// if ( 0 ){
+	// 	// for (int i = 0; i < (WINDOW_WIDTH*WINDOW_HEIGHT); i++) {smZbuf[i] = iv1 / (iv2 - (2*smZbuf[i]-1)*iv3); smZbuf[i] += 0.02f*smZbuf[i]*noise[i];}
+	// }
+	// else {
+	// 	for (int i = 0; i < (WINDOW_WIDTH*WINDOW_HEIGHT); i++){ smZbuf[i] = this->iv1 / (this->iv2 - (2*this->smZbuf[i]-1)*this->iv3); }
+
+	// }
+
+	//End Draw
+	glfwSwapBuffers(window);
+	glFlush();
+
+	glBindVertexArray(0);
+	glUseProgram(0);
+	glActiveTexture(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Game::saveDepthMap()
+{
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	this->updateUniforms();
+
+	//Render models
+	for (auto &i : this->models)
+		i->render(this->shaders[SHADER_CORE_PROGRAM]);
+
+	GLubyte pixels[4 * WINDOW_WIDTH * WINDOW_HEIGHT];
+	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, pixels);
+
+	std::ofstream myfile("depthmap.txt");
+	if (myfile.is_open())
+	{
+		myfile << "This is a line.\n";
+		myfile << "This is another line.\n";
+
+		for (int count = 0; count < 3; count++)
+		{
+			myfile << count << "\n";
+		}
+
+		for (size_t i = 0; i < WINDOW_HEIGHT; i++)
+		{
+			for (size_t j = 0; j < WINDOW_WIDTH; j++)
+			{
+				myfile << (float)pixels[i + j] << " ";
+			}
+			myfile << "\n";
+		}
+
+		myfile.close();
+	}
+
 	//End Draw
 	glfwSwapBuffers(window);
 	glFlush();
@@ -454,10 +534,11 @@ void Game::changeRenderMode(GLFWwindow *window, int key, int scancode, int actio
 		}
 	}
 
-		if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS)
+	if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS)
 	{
 		PROJECTION_MODE = !PROJECTION_MODE;
-
-
+	}
+	if (key == GLFW_KEY_RIGHT_SHIFT && action == GLFW_PRESS)
+	{
 	}
 }
