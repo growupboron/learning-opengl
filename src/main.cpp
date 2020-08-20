@@ -3,10 +3,11 @@
 int main()
 {
 	Game game("Learnin' Opengl",
-		1600, 900,
+		480, 360,
 		4, 4,
 		true);
-	// game.saveDepthMap();
+		
+	game.saveDepthMap();
 	//MAIN LOOP
 	while (!game.getWindowShouldClose())
 	{

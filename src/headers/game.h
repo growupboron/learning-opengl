@@ -74,6 +74,8 @@ private:
 	GLfloat* smZbuf;   // depth buffer
 	float iv1, iv2, iv3;
 
+	GLubyte* depthPixels;
+
 //Private functions
 	void initGLFW();
 	void initWindow(
@@ -125,3 +127,4 @@ public:
 	static void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH);
 	static void changeRenderMode(GLFWwindow *window, int key, int scancode, int action, int mods);
 };
+

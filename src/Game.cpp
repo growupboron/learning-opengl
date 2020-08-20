@@ -3,7 +3,7 @@
 bool PROJECTION_MODE = 0; // ortho = 1, perspective = 0
 int OPENGL_MAJOR = 4;
 int OPENGL_MINOR = 4;
-
+std::vector<Vertex> generateTriangles();
 //Private functions
 void Game::initGLFW()
 {
@@ -133,29 +133,54 @@ void Game::initModels()
 {
 	std::vector<Mesh *> meshes;
 
-	// std::vector<Vertex> mesh = loadObjFile("resources/models/torus.obj");
-	// meshes.push_back(
-	// 	new Mesh(
-	// 		mesh.data(),
-	// 		mesh.size(),
-	// 		NULL,
-	// 		0));
+	std::vector<Mesh *> meshes2;
 
-	// this->models.push_back(new Model(
-	// 	glm::vec3(4.f, 0.f, 4.f),
-	// 	this->materials[0],
-	// 	this->textures[TEX_CONTAINER],
-	// 	this->textures[TEX_CONTAINER_SPECULAR],
-	// 	meshes));
+	std::vector<Vertex> mesh = loadObjFile("resources/models/halfToruss.obj");
+	std::vector<Vertex> mesh2 = generateTriangles();
+	meshes.push_back(
+		new Mesh(
+			mesh.data(),
+			mesh.size(),
+			NULL,
+			0,
+			glm::vec3(0.f),
+			glm::vec3(0.f),
+			glm::vec3(270.f, 0.f, 0.f),
+			glm::vec3(0.25f)));
+	meshes2.push_back(
+		new Mesh(
+			mesh2.data(),
+			mesh2.size(),
+			NULL,
+			0,
+			glm::vec3(0.f),
+			glm::vec3(0.f),
+			glm::vec3(0.f),
+			glm::vec3(0.05f)));			
+
+
 
 	this->models.push_back(new Model(
-		glm::vec3(0.f, 0.f, -2.f),
-		glm::vec3(90.f, 0.f, 0.f),
-		glm::vec3(0.02f),
+		glm::vec3(0.f, 0.f, -6.f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
-		"resources/models/surface2.obj"));
+		meshes));
+	this->models.push_back(new Model(
+		glm::vec3(0.f, 0.f, -4.f),
+		this->materials[0],
+		this->textures[TEX_CONTAINER],
+		this->textures[TEX_CONTAINER_SPECULAR],
+		meshes2));		
+
+	// this->models.push_back(new Model(
+	// 	glm::vec3(0.f, 0.f, -3.f),
+	// 	glm::vec3(90.f, 0.f, 0.f),
+	// 	glm::vec3(0.02f),
+	// 	this->materials[0],
+	// 	this->textures[TEX_CONTAINER],
+	// 	this->textures[TEX_CONTAINER_SPECULAR],
+	// 	"resources/models/surface2.obj"));
 
 	// this->models.push_back(new Model(
 	// 	glm::vec3(0.f, -4.f, 0.f),
@@ -257,7 +282,7 @@ Game::Game(
 	this->iv2 = this->nearPlane + this->farPlane;
 	this->iv3 = this->farPlane - this->nearPlane;
 
-	this->smZbuf = (GLfloat *)malloc(WINDOW_WIDTH * WINDOW_HEIGHT);
+	this->depthPixels = (GLubyte *)malloc(4* WINDOW_WIDTH * WINDOW_HEIGHT);
 
 	this->initGLFW();
 	this->initWindow(title, resizable);
@@ -355,35 +380,35 @@ void Game::updateKeyboardInput()
 	//Camera
 	if (glfwGetKey(this->window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, FORWARD);
+		this->models[0]->move(glm::vec3(0.f, 0.05f, 0.f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, BACKWARD);
+		this->models[0]->move(glm::vec3(0.f, -0.05f, 0.f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, LEFT);
+		this->models[0]->move(glm::vec3(-0.05f, 0.f, 0.f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, RIGHT);
+		this->models[0]->move(glm::vec3(0.05f, 0.f, 0.f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, UP);
+		this->models[0]->move(glm::vec3(0.f, 0.f, 0.05f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_E) == GLFW_PRESS)
 	{
-		this->camera.move(this->dt, DOWN);
+		this->models[0]->move(glm::vec3(0.f, 0.f, -0.05f));
 	}
 	if (glfwGetKey(this->window, GLFW_KEY_C) == GLFW_PRESS)
 	{
-		this->models[0]->rotate(glm::vec3(90.f, 0.f, 0.f));
+		this->models[0]->rotate(glm::vec3(1.f, 0.f, 0.f));
 	}
-	if (glfwGetKey(this->window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	if (glfwGetKey(this->window, GLFW_KEY_V) == GLFW_PRESS)
 	{
-		this->camPosition.y += 0.05f;
+		this->models[0]->rotate(glm::vec3(0.f, 1.f, 0.f));
 	}
 }
 
@@ -429,12 +454,21 @@ void Game::render()
 	GLubyte pixels[4 * WINDOW_WIDTH * WINDOW_HEIGHT];
 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, pixels);
 
+	for (size_t i = 0; i < 4*WINDOW_WIDTH*WINDOW_HEIGHT; i++)
+	{
+		pixels[i] = pixels[i] - this->depthPixels[i];
+		if(pixels[i] == 0){
+			std::cout << "Torus touched surface" << std::endl;
+			break;
+		}
+	}
+	
 	// if (this->smZbuf)
 	// {
 	// 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->smZbuf);
 	// }
 
-	std::cout << (float)pixels[0] << std::endl;
+	std::cout << "[" <<  (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH-1] <<  ", " << (float)pixels[WINDOW_WIDTH*(WINDOW_HEIGHT) -1 ] << ", " << (float)pixels[WINDOW_WIDTH*(WINDOW_HEIGHT -1)] << "]" << std::endl;
 
 	// asynchronous load depth map to PBO
 	// glReadPixels(0,0,WINDOW_WIDTH,WINDOW_HEIGHT,GL_DEPTH_COMPONENT,GL_FLOAT,nullptr);
@@ -471,31 +505,33 @@ void Game::saveDepthMap()
 	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
-	GLubyte pixels[4 * WINDOW_WIDTH * WINDOW_HEIGHT];
-	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, pixels);
+	
+	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, this->depthPixels);
 
-	std::ofstream myfile("depthmap.txt");
-	if (myfile.is_open())
-	{
-		myfile << "This is a line.\n";
-		myfile << "This is another line.\n";
+	// std::ofstream myfile("depthmap.txt");
+	// if (myfile.is_open())
+	// {
+	// 	myfile << "This is a line.\n";
+	// 	myfile << "This is another line.\n";
 
-		for (int count = 0; count < 3; count++)
-		{
-			myfile << count << "\n";
-		}
+	// 	for (int count = 0; count < 3; count++)
+	// 	{
+	// 		myfile << count << "\n";
+	// 	}
 
-		for (size_t i = 0; i < WINDOW_HEIGHT; i++)
-		{
-			for (size_t j = 0; j < WINDOW_WIDTH; j++)
-			{
-				myfile << (float)pixels[i + j] << " ";
-			}
-			myfile << "\n";
-		}
+	// 	for (size_t i = 0; i < WINDOW_HEIGHT; i++)
+	// 	{
+	// 		for (size_t j = 0; j < WINDOW_WIDTH; j++)
+	// 		{
+	// 			myfile << (float)pixels[i + j] << " ";
+	// 		}
+	// 		myfile << "\n";
+	// 	}
 
-		myfile.close();
-	}
+	// 	myfile.close();
+	// }
+
+	this->models.pop_back();
 
 	//End Draw
 	glfwSwapBuffers(window);
@@ -541,4 +577,163 @@ void Game::changeRenderMode(GLFWwindow *window, int key, int scancode, int actio
 	if (key == GLFW_KEY_RIGHT_SHIFT && action == GLFW_PRESS)
 	{
 	}
+}
+
+
+template <typename T>
+std::vector<T> linspace(T a, T b, size_t N)
+{
+   T h = (b - a) / static_cast<T>(N - 1);
+   std::vector<T> xs(N);
+   typename std::vector<T>::iterator x;
+   T val;
+   for (x = xs.begin(), val = a; x != xs.end(); ++x, val += h)
+      *x = val;
+   return xs;
+}
+
+int binomialCoeff(int n, int k)
+{
+   // Base Cases
+   if (k == 0 || k == n)
+      return 1;
+
+   // Recur
+   return binomialCoeff(n - 1, k - 1) +
+          binomialCoeff(n - 1, k);
+}
+
+double Bernstein(int i, int n, double u)
+{
+
+   double *temp = new double[n + 1];
+
+   for (int j = 0; j <= n; ++j)
+   {
+
+      temp[j] = 0.0;
+   }
+
+   temp[n - i] = 1.0;
+   double u1 = 1.0 - u;
+
+   for (int k = 1; k <= n; ++k)
+   {
+
+      for (int j = n; j >= k; --j)
+      {
+
+         temp[j] = u1 * temp[j] + u * temp[j - 1];
+      }
+   }
+
+   // std::cout << "B" << i << n << "(" << u << ")"
+   //           << ":" << temp[n];
+   return temp[n];
+}
+std::vector<Vertex> generateTriangles()
+{
+   int divisions = 51;
+   double umin = 0.0, umax = 1.0, vmin = 0.0, vmax = 1.0;
+
+   int N = 4, M = 4;
+
+   int control_points[16][3] = {
+        {-75, -75, 5},
+        {-75, -25, -10},
+        {-75, 25, 15},
+        {-75, 75, 10},
+        {-25, -75, 5},
+        {-25, -25, 10},
+        {-25, 25, 15},
+        {-25, 75, 20},
+        {25, -75, 25},
+        {25, -25, 30},
+        {25, 25, 20},
+        {25, 75, 25},
+        {75, -75, 15},
+        {75, -25, 25},
+        {75, 25, 25},
+        {75, 75, 1},
+   };
+
+   std::vector<double> u1 = linspace(umin, umax, divisions);
+   std::vector<double> v1 = linspace(vmin, vmax, divisions);
+
+   glm::vec3 finalControlPointList[N][M];
+
+   int temp = 0;
+
+   for (size_t i = 0; i < N; i++)
+   {
+      for (size_t j = 0; j < M; j++)
+      {
+
+         finalControlPointList[i][j] = glm::vec3(control_points[temp][0], control_points[temp][1], control_points[temp][2]);
+         temp++;
+      }
+   }
+   // int index1 = 1;
+   // int index2 = 1;
+   // std::cout << finalControlPointList[index1][index2].x << " " << finalControlPointList[index1][index2].y << " " << finalControlPointList[index1][index2].z << std::endl;
+
+   double u = 0, v = 0, b1, b2;
+   glm::vec3 triangle_array[divisions][divisions];
+   glm::vec3 temp_vector;
+
+   for (size_t i1 = 0; i1 < divisions; i1++)
+   {
+      u = u1[i1];
+      for (size_t j1 = 0; j1 < divisions; j1++)
+      {
+         v = v1[j1];
+         temp_vector = glm::vec3(0.f);
+         for (size_t i = 0; i < N; i++)
+         {
+            for (size_t j = 0; j < M; j++)
+            {
+               // b1 = Bernstein(i,N, u);
+               // b2 = Bernstein(j, M, v);
+               // std::cout << std::fixed<< b1*b2 << std::endl;
+
+               b1 = binomialCoeff(N - 1, i) * pow(u, i) * pow((1 - u), (N - 1 - i)) * binomialCoeff(M - 1, j) * pow(v, j) * pow((1 - v), (M - 1 - j));
+               temp_vector += (float)b1 * finalControlPointList[i][j];
+            }
+         }
+
+         triangle_array[i1][j1] = temp_vector;
+      }
+   }
+
+   int index1 = 0;
+   int index2 = 0;
+   std::cout << triangle_array[index1][index2].x << " " << triangle_array[index1][index2].y << " " << triangle_array[index1][index2].z << std::endl;
+
+   std::vector<Vertex> vertexArray;
+   Vertex tempVertex;
+   tempVertex.color = glm::vec3(1.f);
+   tempVertex.normal = glm::vec3(1.f);
+   tempVertex.texcoord = glm::vec2(0.f, 1.f);
+
+   for (size_t i = 0; i < divisions - 1; i++)
+   {
+      for (size_t j = 0; j < divisions - 1; j++)
+      {
+         tempVertex.position = triangle_array[j][i];
+         vertexArray.push_back(tempVertex);
+         tempVertex.position = triangle_array[j + 1][i];
+         vertexArray.push_back(tempVertex);
+         tempVertex.position = triangle_array[j + 1][i + 1];
+         vertexArray.push_back(tempVertex);
+
+         tempVertex.position = triangle_array[j][i];
+         vertexArray.push_back(tempVertex);
+         tempVertex.position = triangle_array[j + 1][i + 1];
+         vertexArray.push_back(tempVertex);
+         tempVertex.position = triangle_array[j][i + 1];
+         vertexArray.push_back(tempVertex);
+      }
+   }
+
+   return vertexArray;
 }
