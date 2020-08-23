@@ -156,9 +156,10 @@ void Game::initModels()
 			glm::vec3(0.f),
 			glm::vec3(0.f),
 			glm::vec3(0.f),
-			glm::vec3(0.05f)));			
-
-
+			glm::vec3(0.05f)));
+	// Quad quad = Quad();
+	// meshes2.push_back(
+	// 	new Mesh(&quad,glm::vec3(0.f, 0.f, 0.5f)));
 
 	this->models.push_back(new Model(
 		glm::vec3(0.f, 0.f, -6.f),
@@ -167,11 +168,11 @@ void Game::initModels()
 		this->textures[TEX_CONTAINER_SPECULAR],
 		meshes));
 	this->models.push_back(new Model(
-		glm::vec3(0.f, 0.f, -4.f),
+		glm::vec3(0.f, 0.f, -1.f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
-		meshes2));		
+		meshes2));
 
 	// this->models.push_back(new Model(
 	// 	glm::vec3(0.f, 0.f, -3.f),
@@ -282,7 +283,7 @@ Game::Game(
 	this->iv2 = this->nearPlane + this->farPlane;
 	this->iv3 = this->farPlane - this->nearPlane;
 
-	this->depthPixels = (GLubyte *)malloc(4* WINDOW_WIDTH * WINDOW_HEIGHT);
+	this->depthPixels = (GLfloat *)malloc(4 * WINDOW_WIDTH * WINDOW_HEIGHT);
 
 	this->initGLFW();
 	this->initWindow(title, resizable);
@@ -451,24 +452,24 @@ void Game::render()
 	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
-	GLubyte pixels[4 * WINDOW_WIDTH * WINDOW_HEIGHT];
-	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, pixels);
+	GLfloat pixels[WINDOW_WIDTH * WINDOW_HEIGHT];
+	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
 
-	for (size_t i = 0; i < 4*WINDOW_WIDTH*WINDOW_HEIGHT; i++)
-	{
-		pixels[i] = pixels[i] - this->depthPixels[i];
-		if(pixels[i] == 0){
-			std::cout << "Torus touched surface" << std::endl;
-			break;
-		}
-	}
-	
+	// for (size_t i = 0; i < WINDOW_WIDTH*WINDOW_HEIGHT; i++)
+	// {
+	// 	pixels[i] = pixels[i] - this->depthPixels[i];
+	// 	if(pixels[i] == 0){
+	// 		std::cout << "Torus touched surface" << std::endl;
+	// 		break;
+	// 	}
+	// }
+
 	// if (this->smZbuf)
 	// {
 	// 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->smZbuf);
 	// }
 
-	std::cout << "[" <<  (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH-1] <<  ", " << (float)pixels[WINDOW_WIDTH*(WINDOW_HEIGHT) -1 ] << ", " << (float)pixels[WINDOW_WIDTH*(WINDOW_HEIGHT -1)] << "]" << std::endl;
+	std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
 
 	// asynchronous load depth map to PBO
 	// glReadPixels(0,0,WINDOW_WIDTH,WINDOW_HEIGHT,GL_DEPTH_COMPONENT,GL_FLOAT,nullptr);
@@ -505,7 +506,6 @@ void Game::saveDepthMap()
 	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
-	
 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, this->depthPixels);
 
 	// std::ofstream myfile("depthmap.txt");
@@ -531,7 +531,7 @@ void Game::saveDepthMap()
 	// 	myfile.close();
 	// }
 
-	this->models.pop_back();
+	// this->models.pop_back();
 
 	//End Draw
 	glfwSwapBuffers(window);
@@ -579,161 +579,160 @@ void Game::changeRenderMode(GLFWwindow *window, int key, int scancode, int actio
 	}
 }
 
-
 template <typename T>
 std::vector<T> linspace(T a, T b, size_t N)
 {
-   T h = (b - a) / static_cast<T>(N - 1);
-   std::vector<T> xs(N);
-   typename std::vector<T>::iterator x;
-   T val;
-   for (x = xs.begin(), val = a; x != xs.end(); ++x, val += h)
-      *x = val;
-   return xs;
+	T h = (b - a) / static_cast<T>(N - 1);
+	std::vector<T> xs(N);
+	typename std::vector<T>::iterator x;
+	T val;
+	for (x = xs.begin(), val = a; x != xs.end(); ++x, val += h)
+		*x = val;
+	return xs;
 }
 
 int binomialCoeff(int n, int k)
 {
-   // Base Cases
-   if (k == 0 || k == n)
-      return 1;
+	// Base Cases
+	if (k == 0 || k == n)
+		return 1;
 
-   // Recur
-   return binomialCoeff(n - 1, k - 1) +
-          binomialCoeff(n - 1, k);
+	// Recur
+	return binomialCoeff(n - 1, k - 1) +
+		   binomialCoeff(n - 1, k);
 }
 
 double Bernstein(int i, int n, double u)
 {
 
-   double *temp = new double[n + 1];
+	double *temp = new double[n + 1];
 
-   for (int j = 0; j <= n; ++j)
-   {
+	for (int j = 0; j <= n; ++j)
+	{
 
-      temp[j] = 0.0;
-   }
+		temp[j] = 0.0;
+	}
 
-   temp[n - i] = 1.0;
-   double u1 = 1.0 - u;
+	temp[n - i] = 1.0;
+	double u1 = 1.0 - u;
 
-   for (int k = 1; k <= n; ++k)
-   {
+	for (int k = 1; k <= n; ++k)
+	{
 
-      for (int j = n; j >= k; --j)
-      {
+		for (int j = n; j >= k; --j)
+		{
 
-         temp[j] = u1 * temp[j] + u * temp[j - 1];
-      }
-   }
+			temp[j] = u1 * temp[j] + u * temp[j - 1];
+		}
+	}
 
-   // std::cout << "B" << i << n << "(" << u << ")"
-   //           << ":" << temp[n];
-   return temp[n];
+	// std::cout << "B" << i << n << "(" << u << ")"
+	//           << ":" << temp[n];
+	return temp[n];
 }
 std::vector<Vertex> generateTriangles()
 {
-   int divisions = 51;
-   double umin = 0.0, umax = 1.0, vmin = 0.0, vmax = 1.0;
+	int divisions = 51;
+	double umin = 0.0, umax = 1.0, vmin = 0.0, vmax = 1.0;
 
-   int N = 4, M = 4;
+	int N = 4, M = 4;
 
-   int control_points[16][3] = {
-        {-75, -75, 5},
-        {-75, -25, -10},
-        {-75, 25, 15},
-        {-75, 75, 10},
-        {-25, -75, 5},
-        {-25, -25, 10},
-        {-25, 25, 15},
-        {-25, 75, 20},
-        {25, -75, 25},
-        {25, -25, 30},
-        {25, 25, 20},
-        {25, 75, 25},
-        {75, -75, 15},
-        {75, -25, 25},
-        {75, 25, 25},
-        {75, 75, 1},
-   };
+	int control_points[16][3] = {
+		{-75, -75, 5},
+		{-75, -25, -10},
+		{-75, 25, 15},
+		{-75, 75, 10},
+		{-25, -75, 5},
+		{-25, -25, 10},
+		{-25, 25, 15},
+		{-25, 75, 20},
+		{25, -75, 25},
+		{25, -25, 30},
+		{25, 25, 20},
+		{25, 75, 25},
+		{75, -75, 15},
+		{75, -25, 25},
+		{75, 25, 25},
+		{75, 75, 1},
+	};
 
-   std::vector<double> u1 = linspace(umin, umax, divisions);
-   std::vector<double> v1 = linspace(vmin, vmax, divisions);
+	std::vector<double> u1 = linspace(umin, umax, divisions);
+	std::vector<double> v1 = linspace(vmin, vmax, divisions);
 
-   glm::vec3 finalControlPointList[N][M];
+	glm::vec3 finalControlPointList[N][M];
 
-   int temp = 0;
+	int temp = 0;
 
-   for (size_t i = 0; i < N; i++)
-   {
-      for (size_t j = 0; j < M; j++)
-      {
+	for (size_t i = 0; i < N; i++)
+	{
+		for (size_t j = 0; j < M; j++)
+		{
 
-         finalControlPointList[i][j] = glm::vec3(control_points[temp][0], control_points[temp][1], control_points[temp][2]);
-         temp++;
-      }
-   }
-   // int index1 = 1;
-   // int index2 = 1;
-   // std::cout << finalControlPointList[index1][index2].x << " " << finalControlPointList[index1][index2].y << " " << finalControlPointList[index1][index2].z << std::endl;
+			finalControlPointList[i][j] = glm::vec3(control_points[temp][0], control_points[temp][1], control_points[temp][2]);
+			temp++;
+		}
+	}
+	// int index1 = 1;
+	// int index2 = 1;
+	// std::cout << finalControlPointList[index1][index2].x << " " << finalControlPointList[index1][index2].y << " " << finalControlPointList[index1][index2].z << std::endl;
 
-   double u = 0, v = 0, b1, b2;
-   glm::vec3 triangle_array[divisions][divisions];
-   glm::vec3 temp_vector;
+	double u = 0, v = 0, b1, b2;
+	glm::vec3 triangle_array[divisions][divisions];
+	glm::vec3 temp_vector;
 
-   for (size_t i1 = 0; i1 < divisions; i1++)
-   {
-      u = u1[i1];
-      for (size_t j1 = 0; j1 < divisions; j1++)
-      {
-         v = v1[j1];
-         temp_vector = glm::vec3(0.f);
-         for (size_t i = 0; i < N; i++)
-         {
-            for (size_t j = 0; j < M; j++)
-            {
-               // b1 = Bernstein(i,N, u);
-               // b2 = Bernstein(j, M, v);
-               // std::cout << std::fixed<< b1*b2 << std::endl;
+	for (size_t i1 = 0; i1 < divisions; i1++)
+	{
+		u = u1[i1];
+		for (size_t j1 = 0; j1 < divisions; j1++)
+		{
+			v = v1[j1];
+			temp_vector = glm::vec3(0.f);
+			for (size_t i = 0; i < N; i++)
+			{
+				for (size_t j = 0; j < M; j++)
+				{
+					// b1 = Bernstein(i,N, u);
+					// b2 = Bernstein(j, M, v);
+					// std::cout << std::fixed<< b1*b2 << std::endl;
 
-               b1 = binomialCoeff(N - 1, i) * pow(u, i) * pow((1 - u), (N - 1 - i)) * binomialCoeff(M - 1, j) * pow(v, j) * pow((1 - v), (M - 1 - j));
-               temp_vector += (float)b1 * finalControlPointList[i][j];
-            }
-         }
+					b1 = binomialCoeff(N - 1, i) * pow(u, i) * pow((1 - u), (N - 1 - i)) * binomialCoeff(M - 1, j) * pow(v, j) * pow((1 - v), (M - 1 - j));
+					temp_vector += (float)b1 * finalControlPointList[i][j];
+				}
+			}
 
-         triangle_array[i1][j1] = temp_vector;
-      }
-   }
+			triangle_array[i1][j1] = temp_vector;
+		}
+	}
 
-   int index1 = 0;
-   int index2 = 0;
-   std::cout << triangle_array[index1][index2].x << " " << triangle_array[index1][index2].y << " " << triangle_array[index1][index2].z << std::endl;
+	int index1 = 0;
+	int index2 = 0;
+	std::cout << triangle_array[index1][index2].x << " " << triangle_array[index1][index2].y << " " << triangle_array[index1][index2].z << std::endl;
 
-   std::vector<Vertex> vertexArray;
-   Vertex tempVertex;
-   tempVertex.color = glm::vec3(1.f);
-   tempVertex.normal = glm::vec3(1.f);
-   tempVertex.texcoord = glm::vec2(0.f, 1.f);
+	std::vector<Vertex> vertexArray;
+	Vertex tempVertex;
+	tempVertex.color = glm::vec3(1.f);
+	tempVertex.normal = glm::vec3(1.f);
+	tempVertex.texcoord = glm::vec2(0.f, 1.f);
 
-   for (size_t i = 0; i < divisions - 1; i++)
-   {
-      for (size_t j = 0; j < divisions - 1; j++)
-      {
-         tempVertex.position = triangle_array[j][i];
-         vertexArray.push_back(tempVertex);
-         tempVertex.position = triangle_array[j + 1][i];
-         vertexArray.push_back(tempVertex);
-         tempVertex.position = triangle_array[j + 1][i + 1];
-         vertexArray.push_back(tempVertex);
+	for (size_t i = 0; i < divisions - 1; i++)
+	{
+		for (size_t j = 0; j < divisions - 1; j++)
+		{
+			tempVertex.position = triangle_array[j][i];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangle_array[j + 1][i];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangle_array[j + 1][i + 1];
+			vertexArray.push_back(tempVertex);
 
-         tempVertex.position = triangle_array[j][i];
-         vertexArray.push_back(tempVertex);
-         tempVertex.position = triangle_array[j + 1][i + 1];
-         vertexArray.push_back(tempVertex);
-         tempVertex.position = triangle_array[j][i + 1];
-         vertexArray.push_back(tempVertex);
-      }
-   }
+			tempVertex.position = triangle_array[j][i];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangle_array[j + 1][i + 1];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangle_array[j][i + 1];
+			vertexArray.push_back(tempVertex);
+		}
+	}
 
-   return vertexArray;
+	return vertexArray;
 }

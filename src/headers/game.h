@@ -74,7 +74,7 @@ private:
 	GLfloat* smZbuf;   // depth buffer
 	float iv1, iv2, iv3;
 
-	GLubyte* depthPixels;
+	GLfloat* depthPixels;
 
 //Private functions
 	void initGLFW();
