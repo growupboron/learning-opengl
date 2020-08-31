@@ -147,32 +147,32 @@ void Game::initModels()
 			glm::vec3(0.f),
 			glm::vec3(270.f, 0.f, 0.f),
 			glm::vec3(0.25f)));
-	meshes2.push_back(
-		new Mesh(
-			mesh2.data(),
-			mesh2.size(),
-			NULL,
-			0,
-			glm::vec3(0.f),
-			glm::vec3(0.f),
-			glm::vec3(0.f),
-			glm::vec3(0.05f)));
-	// Quad quad = Quad();
 	// meshes2.push_back(
-	// 	new Mesh(&quad,glm::vec3(0.f, 0.f, 0.5f)));
+	// 	new Mesh(
+	// 		mesh2.data(),
+	// 		mesh2.size(),
+	// 		NULL,
+	// 		0,
+	// 		glm::vec3(0.f),
+	// 		glm::vec3(0.f),
+	// 		glm::vec3(0.f),
+	// 		glm::vec3(0.05f)));
+	Quad quad = Quad();
+	// meshes2.push_back(
+	// 	new Mesh(&quad, glm::vec3(0.f, 0.f, 0.f)));
 
 	this->models.push_back(new Model(
-		glm::vec3(0.f, 0.f, -6.f),
+		glm::vec3(0.f, 0.f, -10.f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
 		meshes));
-	this->models.push_back(new Model(
-		glm::vec3(0.f, 0.f, -1.f),
-		this->materials[0],
-		this->textures[TEX_CONTAINER],
-		this->textures[TEX_CONTAINER_SPECULAR],
-		meshes2));
+	// this->models.push_back(new Model(
+	// 	glm::vec3(0.f, 0.f, -1.f),
+	// 	this->materials[0],
+	// 	this->textures[TEX_CONTAINER],
+	// 	this->textures[TEX_CONTAINER_SPECULAR],
+	// 	meshes2));
 
 	// this->models.push_back(new Model(
 	// 	glm::vec3(0.f, 0.f, -3.f),
@@ -263,9 +263,9 @@ Game::Game(
 	this->worldUp = glm::vec3(0.f, 1.f, 0.f);
 	this->camFront = glm::vec3(0.f, 0.f, -1.f);
 
-	this->fov = 60.f;
-	this->nearPlane = 0.1f;
-	this->farPlane = 1000.f;
+	this->fov = 5.f;
+	this->nearPlane = 0.01f;
+	this->farPlane = 100.f;
 
 	this->dt = 0.f;
 	this->curTime = 0.f;
@@ -455,13 +455,25 @@ void Game::render()
 	GLfloat pixels[WINDOW_WIDTH * WINDOW_HEIGHT];
 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
 
+	for (size_t i = 0; i < this->WINDOW_WIDTH * this->WINDOW_HEIGHT; i++)
+	{
+		pixels[i] = ((this->farPlane * this->nearPlane) / (this->nearPlane - this->farPlane)) / (pixels[i] - (this->farPlane / (this->farPlane - this->nearPlane)));
+	}
+
 	// for (size_t i = 0; i < WINDOW_WIDTH*WINDOW_HEIGHT; i++)
 	// {
-	// 	pixels[i] = pixels[i] - this->depthPixels[i];
-	// 	if(pixels[i] == 0){
-	// 		std::cout << "Torus touched surface" << std::endl;
-	// 		break;
-	// 	}
+	// 	pixels =
+	// 	// pixels[i] = (pixels[i] - this->depthPixels[i]);
+
+	// 	// if(pixels[i] < 0.0001){
+	// 	// 	std::cout << "The torus finally touched the surface on pixel" << i << std::endl;
+
+	// 	// 	exit(0);
+	// 	// 	break;
+	// 	// }else {
+	// 	// 	std::cout << "Not touching" << std::endl;
+	// 	// 	break;
+	// 	// }
 	// }
 
 	// if (this->smZbuf)
@@ -506,7 +518,8 @@ void Game::saveDepthMap()
 	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
 
-	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, this->depthPixels);
+	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->depthPixels);
+	// std::cout << "[" << (float)this->depthPixels[0] << ", " << (float)this->depthPixels[WINDOW_WIDTH - 1] << ", " << (float)this->depthPixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)this->depthPixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
 
 	// std::ofstream myfile("depthmap.txt");
 	// if (myfile.is_open())

@@ -3,7 +3,7 @@
 int main()
 {
 	Game game("Learnin' Opengl",
-		480, 360,
+		480, 480,
 		4, 4,
 		true);
 		
