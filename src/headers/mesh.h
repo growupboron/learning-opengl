@@ -220,6 +220,7 @@ public:
 	void move(const glm::vec3 position)
 	{
 		this->position += position;
+		this->setOrigin(this->position);
 	}
 
 	void rotate(const glm::vec3 rotation)

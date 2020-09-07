@@ -4,6 +4,7 @@ bool PROJECTION_MODE = 0; // ortho = 1, perspective = 0
 int OPENGL_MAJOR = 4;
 int OPENGL_MINOR = 4;
 std::vector<Vertex> generateTriangles();
+std::vector<Vertex> generateTorus();
 //Private functions
 void Game::initGLFW()
 {
@@ -131,49 +132,56 @@ void Game::initObjectModels()
 
 void Game::initModels()
 {
-	std::vector<Mesh *> meshes;
+	std::vector<Mesh *> bezierMesh;
 
-	std::vector<Mesh *> meshes2;
+	std::vector<Mesh *> torusMesh;
 
-	std::vector<Vertex> mesh = loadObjFile("resources/models/halfToruss.obj");
-	std::vector<Vertex> mesh2 = generateTriangles();
-	meshes.push_back(
+	// std::vector<Vertex> mesh = loadObjFile("resources/models/halfToruss.obj");
+	std::vector<Vertex> bezier = generateTriangles();
+	std::vector<Vertex> torus = generateTorus();
+
+	torusMesh.push_back(
 		new Mesh(
-			mesh.data(),
-			mesh.size(),
+			torus.data(),
+			torus.size(),
 			NULL,
 			0,
 			glm::vec3(0.f),
 			glm::vec3(0.f),
-			glm::vec3(270.f, 0.f, 0.f),
-			glm::vec3(0.25f)));
-	// meshes2.push_back(
-	// 	new Mesh(
-	// 		mesh2.data(),
-	// 		mesh2.size(),
-	// 		NULL,
-	// 		0,
-	// 		glm::vec3(0.f),
-	// 		glm::vec3(0.f),
-	// 		glm::vec3(0.f),
-	// 		glm::vec3(0.05f)));
-	Quad quad = Quad();
+			glm::vec3(0.f),
+			glm::vec3(1.f)));
+	bezierMesh.push_back(
+		new Mesh(
+			bezier.data(),
+			bezier.size(),
+			NULL,
+			0,
+			glm::vec3(0.f),
+			glm::vec3(0.f),
+			glm::vec3(0.f),
+			glm::vec3(1.f)));
+	// Quad quad = Quad();
 	// meshes2.push_back(
 	// 	new Mesh(&quad, glm::vec3(0.f, 0.f, 0.f)));
 
-	this->models.push_back(new Model(
-		glm::vec3(0.f, 0.f, -10.f),
-		this->materials[0],
-		this->textures[TEX_CONTAINER],
-		this->textures[TEX_CONTAINER_SPECULAR],
-		meshes));
 	// this->models.push_back(new Model(
-	// 	glm::vec3(0.f, 0.f, -1.f),
+	// 	glm::vec3(0.f, 0.f, -20.f),
 	// 	this->materials[0],
 	// 	this->textures[TEX_CONTAINER],
 	// 	this->textures[TEX_CONTAINER_SPECULAR],
-	// 	meshes2));
-
+	// 	meshes));
+	this->models.push_back(new Model(
+		glm::vec3(-10.f, 20.f, -50.f),
+		this->materials[0],
+		this->textures[TEX_CONTAINER],
+		this->textures[TEX_CONTAINER_SPECULAR],
+		torusMesh));
+	this->models.push_back(new Model(
+		glm::vec3(0.f, 0.f, -50.f),
+		this->materials[0],
+		this->textures[TEX_CONTAINER],
+		this->textures[TEX_CONTAINER_SPECULAR],
+		bezierMesh));
 	// this->models.push_back(new Model(
 	// 	glm::vec3(0.f, 0.f, -3.f),
 	// 	glm::vec3(90.f, 0.f, 0.f),
@@ -192,7 +200,10 @@ void Game::initModels()
 	// 	this->textures[TEX_CONTAINER_SPECULAR],
 	// 	"resources/models/torus.obj"));
 
-	for (auto *&i : meshes)
+	for (auto *&i : bezierMesh)
+		delete i;
+
+	for (auto *&i : torusMesh)
 		delete i;
 }
 
@@ -263,8 +274,8 @@ Game::Game(
 	this->worldUp = glm::vec3(0.f, 1.f, 0.f);
 	this->camFront = glm::vec3(0.f, 0.f, -1.f);
 
-	this->fov = 5.f;
-	this->nearPlane = 0.01f;
+	this->fov = 120.f;
+	this->nearPlane = 0.001f;
 	this->farPlane = 100.f;
 
 	this->dt = 0.f;
@@ -338,6 +349,7 @@ void Game::updateDt()
 {
 	this->curTime = static_cast<float>(glfwGetTime());
 	this->dt = this->curTime - this->lastTime;
+
 	this->lastTime = this->curTime;
 }
 
@@ -460,28 +472,33 @@ void Game::render()
 		pixels[i] = ((this->farPlane * this->nearPlane) / (this->nearPlane - this->farPlane)) / (pixels[i] - (this->farPlane / (this->farPlane - this->nearPlane)));
 	}
 
-	// for (size_t i = 0; i < WINDOW_WIDTH*WINDOW_HEIGHT; i++)
-	// {
-	// 	pixels =
-	// 	// pixels[i] = (pixels[i] - this->depthPixels[i]);
+	for (size_t i = 0; i < WINDOW_WIDTH * WINDOW_HEIGHT; i++)
+	{
 
-	// 	// if(pixels[i] < 0.0001){
-	// 	// 	std::cout << "The torus finally touched the surface on pixel" << i << std::endl;
+		pixels[i] = (pixels[i] - this->depthPixels[i]);
 
-	// 	// 	exit(0);
-	// 	// 	break;
-	// 	// }else {
-	// 	// 	std::cout << "Not touching" << std::endl;
-	// 	// 	break;
-	// 	// }
-	// }
+		if (pixels[i] < 0.0001)
+		{
+			std::cout << "The torus finally touched the surface on pixel" << i << std::endl;
+
+			exit(0);
+			break;
+		}
+		else
+		{
+			std::cout << "Not touching" << std::endl;
+			break;
+		}
+	}
+
+	std::cout << 1 / this->dt << std::endl;
 
 	// if (this->smZbuf)
 	// {
 	// 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->smZbuf);
 	// }
 
-	std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
+	// std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
 
 	// asynchronous load depth map to PBO
 	// glReadPixels(0,0,WINDOW_WIDTH,WINDOW_HEIGHT,GL_DEPTH_COMPONENT,GL_FLOAT,nullptr);
@@ -544,7 +561,7 @@ void Game::saveDepthMap()
 	// 	myfile.close();
 	// }
 
-	// this->models.pop_back();
+	this->models.pop_back();
 
 	//End Draw
 	glfwSwapBuffers(window);
@@ -645,28 +662,28 @@ double Bernstein(int i, int n, double u)
 }
 std::vector<Vertex> generateTriangles()
 {
-	int divisions = 51;
+	int divisions = 151;
 	double umin = 0.0, umax = 1.0, vmin = 0.0, vmax = 1.0;
 
 	int N = 4, M = 4;
 
 	int control_points[16][3] = {
-		{-75, -75, 5},
-		{-75, -25, -10},
-		{-75, 25, 15},
-		{-75, 75, 10},
-		{-25, -75, 5},
-		{-25, -25, 10},
-		{-25, 25, 15},
-		{-25, 75, 20},
-		{25, -75, 25},
-		{25, -25, 30},
-		{25, 25, 20},
-		{25, 75, 25},
-		{75, -75, 15},
-		{75, -25, 25},
-		{75, 25, 25},
-		{75, 75, 1},
+		{-75, -75, 15},
+		{-75, -25, 0},
+		{-75, 25, 25},
+		{-75, 75, 20},
+		{-25, -75, 15},
+		{-25, -25, 20},
+		{-25, 25, 25},
+		{-25, 75, 30},
+		{25, -75, 35},
+		{25, -25, 40},
+		{25, 25, 30},
+		{25, 75, 35},
+		{75, -75, 25},
+		{75, -25, 35},
+		{75, 25, 35},
+		{75, 75, 20},
 	};
 
 	std::vector<double> u1 = linspace(umin, umax, divisions);
@@ -743,6 +760,74 @@ std::vector<Vertex> generateTriangles()
 			tempVertex.position = triangle_array[j + 1][i + 1];
 			vertexArray.push_back(tempVertex);
 			tempVertex.position = triangle_array[j][i + 1];
+			vertexArray.push_back(tempVertex);
+		}
+	}
+
+	return vertexArray;
+}
+
+std::vector<Vertex> generateTorus()
+{
+	float radius_inner = 6.0f;
+	float radius_outer = 6.7f;
+	int theta_min = -180;
+	int theta_max = 180;
+
+	glm::vec3 wt = glm::vec3(0.f, 0.f, 1.f);
+	glm::vec3 ut = glm::vec3(1.f, 0.f, 0.f);
+	glm::vec3 vt = glm::vec3(0.f, -1.f, 0.f);
+	glm::vec3 tc1 = glm::vec3(0.f, 0.f, 0.f);
+
+	glm::vec3 ccc;
+
+	int divt = 25, divp = 20;
+
+	std::vector<double> thetaa = linspace((theta_min * M_PI) / 180, (theta_max * M_PI) / 180, divt);
+
+	double tempTheta = 0;
+	double tempPhi = 0;
+	double tempVar = 0;
+	std::vector<double> phii;
+
+	glm::vec3 triangleVerticesArray[divt][divp];
+
+	for (size_t i = 0; i < divt; i++)
+	{
+		tempTheta = thetaa[i];
+		phii = linspace((double)0, 2 * M_PI, divp);
+
+		for (size_t j = 0; j < divp; j++)
+		{
+			tempPhi = phii[j];
+			ccc = ut * (float)((radius_outer + radius_inner * cos(tempTheta)) * cos(tempPhi)) + vt * (float)((radius_outer + radius_inner * cos(tempTheta)) * sin(tempPhi)) + wt * (float)(radius_inner * sin(tempTheta)) + tc1;
+
+			triangleVerticesArray[i][j] = ccc;
+		}
+	}
+
+	std::vector<Vertex> vertexArray;
+	Vertex tempVertex;
+	tempVertex.color = glm::vec3(1.f);
+	tempVertex.normal = glm::vec3(1.f);
+	tempVertex.texcoord = glm::vec2(0.f, 1.f);
+
+	for (size_t i = 0; i < divp - 1; i++)
+	{
+		for (size_t j = 0; j < divt - 1; j++)
+		{
+			tempVertex.position = triangleVerticesArray[j][i];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangleVerticesArray[j + 1][i];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangleVerticesArray[j + 1][i + 1];
+			vertexArray.push_back(tempVertex);
+
+			tempVertex.position = triangleVerticesArray[j][i];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangleVerticesArray[j + 1][i + 1];
+			vertexArray.push_back(tempVertex);
+			tempVertex.position = triangleVerticesArray[j][i + 1];
 			vertexArray.push_back(tempVertex);
 		}
 	}

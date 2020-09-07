@@ -11,9 +11,11 @@ private:
 	Material *material;
 	Texture *overrideTextureDiffuse;
 	Texture *overrideTextureSpecular;
-	std::vector<Mesh *> meshes;
+
 	glm::vec3 position;
 
+public:
+	std::vector<Mesh *> meshes;
 	void updateUniforms()
 	{
 	}
