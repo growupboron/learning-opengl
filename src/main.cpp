@@ -8,6 +8,9 @@ int main()
 		true);
 		
 	game.saveDepthMap();
+
+	game.saveDepthMap();
+	game.removeBezier();
 	//MAIN LOOP
 	while (!game.getWindowShouldClose())
 	{

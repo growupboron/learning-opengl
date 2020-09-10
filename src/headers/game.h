@@ -123,6 +123,7 @@ public:
 	void update();
 	void render();
 	void saveDepthMap();
+	void removeBezier();
 	GLfloat* calculateActualDepth(GLfloat*);
 //Static functions
 	static void framebuffer_resize_callback(GLFWwindow* window, int fbW, int fbH);

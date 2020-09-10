@@ -171,7 +171,7 @@ void Game::initModels()
 	// 	this->textures[TEX_CONTAINER_SPECULAR],
 	// 	meshes));
 	this->models.push_back(new Model(
-		glm::vec3(-10.f, 20.f, -50.f),
+		glm::vec3(0.f, 0.f, -80.f),
 		this->materials[0],
 		this->textures[TEX_CONTAINER],
 		this->textures[TEX_CONTAINER_SPECULAR],
@@ -463,6 +463,7 @@ void Game::render()
 	//Render models
 	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
+	glfwSwapBuffers(window);
 
 	GLfloat pixels[WINDOW_WIDTH * WINDOW_HEIGHT];
 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
@@ -479,26 +480,26 @@ void Game::render()
 
 		if (pixels[i] < 0.0001)
 		{
-			std::cout << "The torus finally touched the surface on pixel" << i << std::endl;
+			std::cout << "The torus finally touched the surface on pixel: " << i << std::endl;
 
 			exit(0);
 			break;
 		}
 		else
 		{
-			std::cout << "Not touching" << std::endl;
-			break;
+			// std::cout << "Not touching" << std::endl;
+			// break;
 		}
 	}
 
-	std::cout << 1 / this->dt << std::endl;
+	// std::cout << 1 / this->dt << std::endl;
 
 	// if (this->smZbuf)
 	// {
 	// 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->smZbuf);
 	// }
 
-	// std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
+	std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
 
 	// asynchronous load depth map to PBO
 	// glReadPixels(0,0,WINDOW_WIDTH,WINDOW_HEIGHT,GL_DEPTH_COMPONENT,GL_FLOAT,nullptr);
@@ -515,7 +516,6 @@ void Game::render()
 	// }
 
 	//End Draw
-	glfwSwapBuffers(window);
 	glFlush();
 
 	glBindVertexArray(0);
@@ -534,37 +534,18 @@ void Game::saveDepthMap()
 	//Render models
 	for (auto &i : this->models)
 		i->render(this->shaders[SHADER_CORE_PROGRAM]);
+	glfwSwapBuffers(window);
 
 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->depthPixels);
+
+	for (size_t i = 0; i < this->WINDOW_WIDTH * this->WINDOW_HEIGHT; i++)
+	{
+		this->depthPixels[i] = ((this->farPlane * this->nearPlane) / (this->nearPlane - this->farPlane)) / (this->depthPixels[i] - (this->farPlane / (this->farPlane - this->nearPlane)));
+	}
+
 	// std::cout << "[" << (float)this->depthPixels[0] << ", " << (float)this->depthPixels[WINDOW_WIDTH - 1] << ", " << (float)this->depthPixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)this->depthPixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
 
-	// std::ofstream myfile("depthmap.txt");
-	// if (myfile.is_open())
-	// {
-	// 	myfile << "This is a line.\n";
-	// 	myfile << "This is another line.\n";
-
-	// 	for (int count = 0; count < 3; count++)
-	// 	{
-	// 		myfile << count << "\n";
-	// 	}
-
-	// 	for (size_t i = 0; i < WINDOW_HEIGHT; i++)
-	// 	{
-	// 		for (size_t j = 0; j < WINDOW_WIDTH; j++)
-	// 		{
-	// 			myfile << (float)pixels[i + j] << " ";
-	// 		}
-	// 		myfile << "\n";
-	// 	}
-
-	// 	myfile.close();
-	// }
-
-	this->models.pop_back();
-
 	//End Draw
-	glfwSwapBuffers(window);
 	glFlush();
 
 	glBindVertexArray(0);
@@ -573,6 +554,10 @@ void Game::saveDepthMap()
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Game::removeBezier(){
+	this->models.pop_back();
+
+}
 //Static functions
 void Game::framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)
 {
