@@ -58,9 +58,6 @@ private:
 	//Shaders
 	std::vector<Shader*> shaders;
 
-	//Textures
-	std::vector<Texture*> textures;
-
 	//Materials
 	std::vector<Material*> materials;
 
@@ -75,6 +72,7 @@ private:
 	float iv1, iv2, iv3;
 
 	GLfloat* depthPixels;
+	long int closestPixel;
 
 //Private functions
 	void initGLFW();
@@ -123,6 +121,7 @@ public:
 	void update();
 	void render();
 	void saveDepthMap();
+	void calculateNearestPixel();
 	void removeBezier();
 	GLfloat* calculateActualDepth(GLfloat*);
 //Static functions

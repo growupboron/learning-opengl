@@ -100,6 +100,7 @@ void Game::initMatrices()
 			static_cast<float>(this->framebufferWidth) / this->framebufferHeight,
 			this->nearPlane,
 			this->farPlane);
+		std::cout << glm::to_string(this->ProjectionMatrix);
 	}
 }
 
@@ -109,16 +110,6 @@ void Game::initShaders()
 									   (char *)"resources/shaders/vertex_core.glsl", (char *)"resources/shaders/fragment_core.glsl"));
 }
 
-void Game::initTextures()
-{
-	//TEXTURE 0
-	this->textures.push_back(new Texture("resources/images/db_trans.png", GL_TEXTURE_2D));
-	this->textures.push_back(new Texture("resources/images/db_trans_specular.png", GL_TEXTURE_2D));
-
-	//TEXTURE 1
-	this->textures.push_back(new Texture("resources/images/tex.jpg", GL_TEXTURE_2D));
-	this->textures.push_back(new Texture("resources/images/tex.jpg", GL_TEXTURE_2D));
-}
 
 void Game::initMaterials()
 {
@@ -173,14 +164,10 @@ void Game::initModels()
 	this->models.push_back(new Model(
 		glm::vec3(0.f, 0.f, -80.f),
 		this->materials[0],
-		this->textures[TEX_CONTAINER],
-		this->textures[TEX_CONTAINER_SPECULAR],
 		torusMesh));
 	this->models.push_back(new Model(
 		glm::vec3(0.f, 0.f, -50.f),
 		this->materials[0],
-		this->textures[TEX_CONTAINER],
-		this->textures[TEX_CONTAINER_SPECULAR],
 		bezierMesh));
 	// this->models.push_back(new Model(
 	// 	glm::vec3(0.f, 0.f, -3.f),
@@ -295,6 +282,7 @@ Game::Game(
 	this->iv3 = this->farPlane - this->nearPlane;
 
 	this->depthPixels = (GLfloat *)malloc(4 * WINDOW_WIDTH * WINDOW_HEIGHT);
+	this->closestPixel = 0;
 
 	this->initGLFW();
 	this->initWindow(title, resizable);
@@ -303,7 +291,6 @@ Game::Game(
 
 	this->initMatrices();
 	this->initShaders();
-	this->initTextures();
 	this->initMaterials();
 	this->initObjectModels();
 	this->initModels();
@@ -319,8 +306,6 @@ Game::~Game()
 	for (size_t i = 0; i < this->shaders.size(); i++)
 		delete this->shaders[i];
 
-	for (size_t i = 0; i < this->textures.size(); i++)
-		delete this->textures[i];
 
 	for (size_t i = 0; i < this->materials.size(); i++)
 		delete this->materials[i];
@@ -480,7 +465,9 @@ void Game::render()
 
 		if (pixels[i] < 0.0001)
 		{
-			std::cout << "The torus finally touched the surface on pixel: " << i << std::endl;
+			std::cout << "The closest pixel is " << i << std::endl;
+			std::cout << "The previously calculated closest pixel is " << this->closestPixel << std::endl;
+			std::cout << "The torus finally touched the surface on row " << (int)i / this->WINDOW_WIDTH << " and column : " << (int)i % this->WINDOW_WIDTH << std::endl;
 
 			exit(0);
 			break;
@@ -499,7 +486,7 @@ void Game::render()
 	// 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->smZbuf);
 	// }
 
-	std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
+	// std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
 
 	// asynchronous load depth map to PBO
 	// glReadPixels(0,0,WINDOW_WIDTH,WINDOW_HEIGHT,GL_DEPTH_COMPONENT,GL_FLOAT,nullptr);
@@ -553,10 +540,50 @@ void Game::saveDepthMap()
 	glActiveTexture(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+void Game::calculateNearestPixel()
+{
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-void Game::removeBezier(){
+	this->updateUniforms();
+
+	//Render models
+	for (auto &i : this->models)
+		i->render(this->shaders[SHADER_CORE_PROGRAM]);
+	glfwSwapBuffers(window);
+
+	GLfloat pixels[WINDOW_WIDTH * WINDOW_HEIGHT];
+	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+	int minValue = 100;
+	for (size_t i = 0; i < this->WINDOW_WIDTH * this->WINDOW_HEIGHT; i++)
+	{
+		pixels[i] = ((this->farPlane * this->nearPlane) / (this->nearPlane - this->farPlane)) / (pixels[i] - (this->farPlane / (this->farPlane - this->nearPlane)));
+	}
+
+	for (size_t i = 0; i < WINDOW_WIDTH * WINDOW_HEIGHT; i++)
+	{
+
+		if ((pixels[i] - this->depthPixels[i]) < minValue)
+		{
+			minValue = (pixels[i] - this->depthPixels[i]);
+			this->closestPixel = i;
+		}
+	}
+	std::cout << "The closest pixel is " << this->closestPixel;
+	// std::cout << "[" << (float)this->depthPixels[0] << ", " << (float)this->depthPixels[WINDOW_WIDTH - 1] << ", " << (float)this->depthPixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)this->depthPixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
+
+	//End Draw
+	glFlush();
+
+	glBindVertexArray(0);
+	glUseProgram(0);
+	glActiveTexture(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Game::removeBezier()
+{
 	this->models.pop_back();
-
 }
 //Static functions
 void Game::framebuffer_resize_callback(GLFWwindow *window, int fbW, int fbH)

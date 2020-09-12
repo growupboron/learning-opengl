@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mesh.h"
-#include "texture.h"
 #include "shader.h"
 #include "material.h"
 #include "objectLoader.h"
@@ -9,8 +8,7 @@ class Model
 {
 private:
 	Material *material;
-	Texture *overrideTextureDiffuse;
-	Texture *overrideTextureSpecular;
+
 
 	glm::vec3 position;
 
@@ -24,14 +22,10 @@ public:
 	Model(
 		glm::vec3 position,
 		Material *material,
-		Texture *orTexDif,
-		Texture *orTexSpec,
 		std::vector<Mesh *> &meshes)
 	{
 		this->position = position;
 		this->material = material;
-		this->overrideTextureDiffuse = orTexDif;
-		this->overrideTextureSpecular = orTexSpec;
 
 		for (auto *i : meshes)
 		{
@@ -50,14 +44,11 @@ public:
 		glm::vec3 rotation,
 		glm::vec3 scale,
 		Material *material,
-		Texture *orTexDif,
-		Texture *orTexSpec,
 		const char *objFile)
 	{
 		this->position = position;
 		this->material = material;
-		this->overrideTextureDiffuse = orTexDif;
-		this->overrideTextureSpecular = orTexSpec;
+
 
 		std::vector<Vertex> mesh = loadObjFile(objFile);
 		this->meshes.push_back(
@@ -122,8 +113,6 @@ public:
 		//Draw
 		for (auto &i : this->meshes)
 		{
-			this->overrideTextureDiffuse->bind(0);
-			this->overrideTextureSpecular->bind(1);
 			i->render(shader);
 		}
 	}

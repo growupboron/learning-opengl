@@ -15,12 +15,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include<SOIL2.h>
 
 #include "vertex.h"
 #include "primitives.h"
 #include "shader.h"
-#include "texture.h"
 #include "material.h"
 #include "mesh.h"
 #include "model.h"

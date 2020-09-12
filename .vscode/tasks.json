@@ -31,7 +31,6 @@
                     "-lXinerama",
                     "-lXcursor",
                     "-lGLEW",
-                    "-l:libsoil2.a"
                 ],
                 "options": {
                     "cwd": "${workspaceFolder}"
@@ -61,7 +60,6 @@
                     "-lgdi32",
                     "-IwinLibs/include",
                     "-Lc:winLibs/libs",
-                    "-lsoil2"
                 ],
                 "options": {
                     "cwd": "${workspaceFolder}"
