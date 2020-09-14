@@ -87,11 +87,11 @@ void Game::initMatrices()
 	this->ProjectionMatrix = glm::mat4(1.f);
 	if (PROJECTION_MODE)
 	{
-		this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth / 200),
-											static_cast<float>(this->framebufferWidth / 200),
-											static_cast<float>(-this->framebufferHeight / 200),
-											static_cast<float>(this->framebufferHeight / 200),
-											-1000.0f, 1000.0f);
+		this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth / 100),
+											static_cast<float>(this->framebufferWidth / 100),
+											static_cast<float>(-this->framebufferHeight / 100),
+											static_cast<float>(this->framebufferHeight / 100),
+											-10.0f, 100.0f);
 	}
 	else
 	{
@@ -151,9 +151,9 @@ void Game::initModels()
 			glm::vec3(0.f),
 			glm::vec3(0.f),
 			glm::vec3(1.f)));
-	// Quad quad = Quad();
-	// meshes2.push_back(
-	// 	new Mesh(&quad, glm::vec3(0.f, 0.f, 0.f)));
+	Cube quad = Cube();
+	bezierMesh.push_back(
+		new Mesh(&quad, bezier[0].position, glm::vec3(0.f), glm::vec3(0.f), glm::vec3(10.f)));
 
 	// this->models.push_back(new Model(
 	// 	glm::vec3(0.f, 0.f, -20.f),
@@ -222,11 +222,11 @@ void Game::updateUniforms()
 
 	if (PROJECTION_MODE)
 	{
-		this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth / 200),
-											static_cast<float>(this->framebufferWidth / 200),
-											static_cast<float>(-this->framebufferHeight / 200),
-											static_cast<float>(this->framebufferHeight / 200),
-											-1000.0f, 1000.0f);
+		this->ProjectionMatrix = glm::ortho(static_cast<float>(-this->framebufferWidth / 5),
+											static_cast<float>(this->framebufferWidth / 5),
+											static_cast<float>(-this->framebufferHeight / 5),
+											static_cast<float>(this->framebufferHeight / 5),
+											-100.0f, 100.0f);
 	}
 	else
 	{
@@ -453,30 +453,30 @@ void Game::render()
 	GLfloat pixels[WINDOW_WIDTH * WINDOW_HEIGHT];
 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
 
-	for (size_t i = 0; i < this->WINDOW_WIDTH * this->WINDOW_HEIGHT; i++)
-	{
-		pixels[i] = ((this->farPlane * this->nearPlane) / (this->nearPlane - this->farPlane)) / (pixels[i] - (this->farPlane / (this->farPlane - this->nearPlane)));
-	}
+	// for (size_t i = 0; i < this->WINDOW_WIDTH * this->WINDOW_HEIGHT; i++)
+	// {
+	// 	pixels[i] = ((this->farPlane * this->nearPlane) / (this->nearPlane - this->farPlane)) / (pixels[i] - (this->farPlane / (this->farPlane - this->nearPlane)));
+	// }
 
 	for (size_t i = 0; i < WINDOW_WIDTH * WINDOW_HEIGHT; i++)
 	{
 
-		pixels[i] = (pixels[i] - this->depthPixels[i]);
+		// pixels[i] = (pixels[i] - this->depthPixels[i]);
 
-		if (pixels[i] < 0.0001)
-		{
-			std::cout << "The closest pixel is " << i << std::endl;
-			std::cout << "The previously calculated closest pixel is " << this->closestPixel << std::endl;
-			std::cout << "The torus finally touched the surface on row " << (int)i / this->WINDOW_WIDTH << " and column : " << (int)i % this->WINDOW_WIDTH << std::endl;
+		// if (pixels[i] < 0.0001)
+		// {
+		// 	std::cout << "The closest pixel is " << i << std::endl;
+		// 	std::cout << "The previously calculated closest pixel is " << this->closestPixel << std::endl;
+		// 	std::cout << "The torus finally touched the surface on row " << (int)i / this->WINDOW_WIDTH << " and column : " << (int)i % this->WINDOW_WIDTH << std::endl;
 
-			exit(0);
-			break;
-		}
-		else
-		{
-			// std::cout << "Not touching" << std::endl;
-			// break;
-		}
+		// 	exit(0);
+		// 	break;
+		// }
+		// else
+		// {
+		// 	// std::cout << "Not touching" << std::endl;
+		// 	// break;
+		// }
 	}
 
 	// std::cout << 1 / this->dt << std::endl;
@@ -486,7 +486,7 @@ void Game::render()
 	// 	glReadPixels(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_DEPTH_COMPONENT, GL_FLOAT, this->smZbuf);
 	// }
 
-	// std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
+	std::cout << "[" << (float)pixels[0] << ", " << (float)pixels[WINDOW_WIDTH - 1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT)-1] << ", " << (float)pixels[WINDOW_WIDTH * (WINDOW_HEIGHT - 1)] << "]" << std::endl;
 
 	// asynchronous load depth map to PBO
 	// glReadPixels(0,0,WINDOW_WIDTH,WINDOW_HEIGHT,GL_DEPTH_COMPONENT,GL_FLOAT,nullptr);
@@ -820,7 +820,7 @@ std::vector<Vertex> generateTorus()
 
 	std::vector<Vertex> vertexArray;
 	Vertex tempVertex;
-	tempVertex.color = glm::vec3(1.f);
+	tempVertex.color = glm::vec3(1.f, 0.f, 0.f);
 	tempVertex.normal = glm::vec3(1.f);
 	tempVertex.texcoord = glm::vec2(0.f, 1.f);
 

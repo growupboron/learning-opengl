@@ -73,7 +73,7 @@ void main()
 	//Attenuation
 	
 	//Final light
-	fs_color=
+	fs_color= vec4(vs_color, 1.f)*
 	(vec4(ambientFinal,1.f)+vec4(diffuseFinal,1.f));
 	// float depth = LinearizeDepth(gl_FragCoord.z) / far;
 	// fs_color = vec4(depth, 0, 0, 1.0);

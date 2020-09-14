@@ -8,7 +8,7 @@ int main()
 		true);
 		
 	game.saveDepthMap();
-	game.removeBezier();
+	// game.removeBezier();
 
 	game.calculateNearestPixel();
 	//MAIN LOOP
