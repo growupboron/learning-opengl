@@ -21,7 +21,8 @@
                     "-IlinuxLibs/include",
                     "-lGL",
                     "-lGLU",
-                    "-lglfw3",
+                    //"-lgflw3", //vividh's system
+                    "-lglfw", //boron's  system
                     "-lX11",
                     "-lXxf86vm",
                     "-lXrandr",
